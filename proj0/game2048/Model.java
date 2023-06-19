@@ -144,10 +144,12 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
+
         // hack for TrickyMerge
         changedPosition = new ArrayList<>();
 
         this.board.setViewingPerspective(side);
+        System.out.print(board);
 
         for (int i = this.board.size() - 2; i >= 0; i--) {
             boolean rowChanged = tiltSingleRow(i);
@@ -156,7 +158,7 @@ public class Model extends Observable {
                 changed = true;
             }
         }
-
+        System.out.print(board);
         this.board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
@@ -176,16 +178,20 @@ public class Model extends Observable {
         for (int col = 0; col < this.board.size(); col++) {
             Tile currTile = this.board.tile(col, row);
 
+
             if (currTile == null) {
                 continue;
             }
-
-            int[] targetPlace = findTargetPlace(currTile);
-            if (targetPlace == null) {
+            int[] currPlace = new int[] {col, row, currTile.value()};
+            System.out.println("curr: " + col + " " + row);
+            int[] targetPlace = findTargetPlace(currPlace);
+            if (targetPlace == null || (targetPlace[0] == 0 && targetPlace[1] == 0)) {
                 continue;
             }
 
             changed = true;
+            System.out.println("target: " + targetPlace[0] + " " + targetPlace[1]);
+
             boolean merged = this.board.move(targetPlace[0], targetPlace[1], currTile);
             if (merged) {
                 this.score = score() + currTile.value() * 2;
@@ -205,10 +211,11 @@ public class Model extends Observable {
      *
      * @return {col, row}
      */
-    private int[] findTargetPlace(Tile currTile) {
+    private int[] findTargetPlace(int[] currPlace) {
 
-        int row = currTile.row();
-        int col = currTile.col();
+        int col = currPlace[0];
+        int row = currPlace[1];
+        int v = currPlace[2];
 
         int[] next = new int[2];
         for (int i = row + 1; i < this.board.size(); i++) {
@@ -216,7 +223,7 @@ public class Model extends Observable {
             if (nextTile == null) {
                 next[0] = col;
                 next[1] = i;
-            } else if (nextTile.value() == currTile.value() &&
+            } else if (nextTile.value() == v &&
                     // hack for TrickyMerge
                     !changedPosition.contains(col + String.valueOf(i))) {
                 next[0] = col;
