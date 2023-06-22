@@ -23,7 +23,7 @@ public class TimeAList {
 
     public static void timeAListConstruction() {
         final int START = 1000;
-        final int END = 128000000;
+        final int END = 128000;
         final int INCREMENT = 2;
 
         AList<Integer> ns = new AList<>();
