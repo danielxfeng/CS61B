@@ -11,8 +11,8 @@ public class TestBuggyAList {
 
     @Test
     public void testThreeAddThreeRemove() {
-        AListNoResizing<Integer>aListNoResizing = new AListNoResizing<>();
-        BuggyAList<Integer>buggyAList = new BuggyAList<>();
+        AListNoResizing<Integer> aListNoResizing = new AListNoResizing<>();
+        BuggyAList<Integer> buggyAList = new BuggyAList<>();
 
         int[] testArr = {4, 5, 6};
         for (int v : testArr) {
@@ -28,7 +28,7 @@ public class TestBuggyAList {
     @Test
     public void randomizedTest() {
         AListNoResizing<Integer> L = new AListNoResizing<>();
-        BuggyAList<Integer>buggyAList = new BuggyAList<>();
+        BuggyAList<Integer> buggyAList = new BuggyAList<>();
 
         int N = 5000;
         for (int i = 0; i < N; i += 1) {
