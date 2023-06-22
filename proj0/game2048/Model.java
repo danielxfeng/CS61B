@@ -28,7 +28,10 @@ public class Model extends Observable {
      */
     private boolean gameOver;
 
-    // hack for TrickyMerge
+    /**
+     *  Hack for TrickyMerge. All the Locations of Target Tiles that had been merged are kept
+     *  in this ArrayList to avoid the double merge.
+     */
     private ArrayList<String> changedPosition;
 
     /* Coordinate System: column C, row R of the board (where row 0,
@@ -145,12 +148,15 @@ public class Model extends Observable {
         changed = false;
 
 
-        // hack for TrickyMerge
+        /** Hack for TrickyMerge, the changePosition will be init
+         *  when the method was called.
+         */
         changedPosition = new ArrayList<>();
 
+        // set the direction
         this.board.setViewingPerspective(side);
-        System.out.print(board);
 
+        // do row by row
         for (int i = this.board.size() - 2; i >= 0; i--) {
             boolean rowChanged = tiltSingleRow(i);
 
@@ -158,10 +164,13 @@ public class Model extends Observable {
                 changed = true;
             }
         }
-        System.out.print(board);
+
+        // reset the direction
         this.board.setViewingPerspective(Side.NORTH);
+
         checkGameOver();
         if (changed) {
+            // call the UI
             setChanged();
         }
         return changed;
@@ -175,24 +184,29 @@ public class Model extends Observable {
      */
     private boolean tiltSingleRow(int row) {
         boolean changed = false;
+        // Deal with every Tile.
         for (int col = 0; col < this.board.size(); col++) {
             Tile currTile = this.board.tile(col, row);
-
 
             if (currTile == null) {
                 continue;
             }
+
             int[] currPlace = new int[] {col, row, currTile.value()};
-            System.out.println("curr: " + col + " " + row);
+
+            // Find the target place
             int[] targetPlace = findTargetPlace(currPlace);
+
             if (targetPlace == null || (targetPlace[0] == 0 && targetPlace[1] == 0)) {
                 continue;
             }
 
             changed = true;
-            System.out.println("target: " + targetPlace[0] + " " + targetPlace[1]);
 
+            // Move
             boolean merged = this.board.move(targetPlace[0], targetPlace[1], currTile);
+
+            // Change the score when merge
             if (merged) {
                 this.score = score() + currTile.value() * 2;
             }
@@ -218,17 +232,19 @@ public class Model extends Observable {
         int v = currPlace[2];
 
         int[] next = new int[2];
+
+        // Find the next place ahead of the Tile
         for (int i = row + 1; i < this.board.size(); i++) {
             Tile nextTile = this.board.tile(col, i);
-            if (nextTile == null) {
+
+            if (nextTile == null) { // Ahead is a empty one.
                 next[0] = col;
                 next[1] = i;
-            } else if (nextTile.value() == v &&
-                    // hack for TrickyMerge
+            } else if (nextTile.value() == v && // Find the Tile that can be merged and,
+                    // never been merged for the Tricky Merge Rule.
                     !changedPosition.contains(col + String.valueOf(i))) {
                 next[0] = col;
                 next[1] = i;
-                // hack for TrickyMerge
                 changedPosition.add(col + String.valueOf(i));
                 return next;
             } else {
