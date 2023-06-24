@@ -21,9 +21,9 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      * eg: Link(1, Link(2, Link(3, null)))
      */
     private static class Link<T> {
-        public T value;
-        public Link<T> prev;
-        public Link<T> next;
+        private T value;
+        private Link<T> prev;
+        private Link<T> next;
         public Link(T value, Link<T> prev, Link<T> next) {
             this.value = value;
             this.prev = prev;

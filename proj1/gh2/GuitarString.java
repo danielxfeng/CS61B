@@ -31,7 +31,7 @@ public class GuitarString {
     public void pluck() {
         for (int i = 0; i < buffer.size(); i++) {
             HashSet<Double> hs = new HashSet<>();
-            double r = Math.random() - 0.5;;
+            double r = Math.random() - 0.5;
             while (!hs.add(r)) {
                 r = Math.random() - 0.5;
             }

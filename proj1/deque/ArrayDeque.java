@@ -1,6 +1,5 @@
 package deque;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -63,7 +62,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         initArrPos();
     }
 
-    private void initArrPos(){
+    private void initArrPos() {
         nextFirst = array.length - 1;
         nextLast = size();
     }

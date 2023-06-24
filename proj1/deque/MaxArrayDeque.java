@@ -1,8 +1,5 @@
 package deque;
 
-import net.sf.saxon.functions.Minimax;
-
-import java.util.Collections;
 import java.util.Comparator;
 
 /**
@@ -16,16 +13,16 @@ import java.util.Comparator;
  */
 public class MaxArrayDeque<T> extends ArrayDeque<T> {
 
-    private Comparator<T> c;
+    private Comparator<T> cp;
 
     public MaxArrayDeque() {
     }
     public MaxArrayDeque(Comparator<T> c) {
-        this.c = c;
+        this.cp = c;
     }
 
     public T max() {
-        return max(this.c);
+        return max(this.cp);
     }
 
     public T max(Comparator<T> c) {
