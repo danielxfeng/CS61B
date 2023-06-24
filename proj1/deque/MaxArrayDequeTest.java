@@ -39,7 +39,7 @@ public class MaxArrayDequeTest {
 
     @Test
     public void testInt() {
-        MaxArrayDeque<Integer> maxArrayDeque = new MaxArrayDeque<>();
+        MaxArrayDeque<Integer> maxArrayDeque = new MaxArrayDeque<>(getIntCompare());
         assertNull(maxArrayDeque.max(getIntCompare()));
         maxArrayDeque.addLast(31);
         maxArrayDeque.addLast(22);

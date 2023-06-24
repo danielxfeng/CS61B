@@ -5,7 +5,8 @@ import java.util.Comparator;
 /**
  * An Array implementation .
  * The MAX Array Deque is a kind of Array Deque.
- * The definition of deque is here: <a href="http://www.cplusplus.com/reference/deque/deque/">...</a>
+ * The definition of deque is here:
+ * <a href="http://www.cplusplus.com/reference/deque/deque/">...</a>
  * This implementation is for the project 1 of CS61A, the website of project is here:
  * <a href="https://sp21.datastructur.es/materials/proj/proj1/proj1">...</a>
  *
@@ -14,9 +15,6 @@ import java.util.Comparator;
 public class MaxArrayDeque<T> extends ArrayDeque<T> {
 
     private Comparator<T> cp;
-
-    public MaxArrayDeque() {
-    }
     public MaxArrayDeque(Comparator<T> c) {
         this.cp = c;
     }

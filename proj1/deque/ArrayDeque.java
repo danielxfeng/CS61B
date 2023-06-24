@@ -11,7 +11,7 @@ import java.util.Iterator;
  */
 public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
-    private final static int START_SIZE = 8;
+    private static final int START_SIZE = 8;
     private T[] array;
     private int size;
 
@@ -37,7 +37,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
         private int index;
 
-        public ArrayDequeIterator() {
+        private ArrayDequeIterator() {
             index = 0;
         }
 
@@ -185,22 +185,13 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      */
     @Override
     public void printDeque() {
-        System.out.println(this);
-    }
-
-    /**
-     * Return the string of the Deque.
-     * --> 1 2 3
-     */
-    @Override
-    public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < size() - 1; i++) {
             sb.append(get(i));
             sb.append(" ");
         }
         sb.append(get(size() - 1));
-        return sb.toString();
+        System.out.println(sb.toString());
     }
 
     /**

@@ -24,7 +24,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         private T value;
         private Link<T> prev;
         private Link<T> next;
-        public Link(T value, Link<T> prev, Link<T> next) {
+        private Link(T value, Link<T> prev, Link<T> next) {
             this.value = value;
             this.prev = prev;
             this.next = next;
@@ -38,7 +38,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
 
         private int index;
 
-        public LinkedListDequeIterator() {
+        private LinkedListDequeIterator() {
             index = 0;
         }
 
@@ -110,22 +110,13 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      */
     @Override
     public void printDeque() {
-        System.out.println(this);
-    }
-
-    /**
-     * Return the string of the Deque.
-     * --> 1 2 3
-     */
-    @Override
-    public String toString() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < size() - 1; i++) {
             sb.append(get(i));
             sb.append(" ");
         }
         sb.append(get(size() - 1));
-        return sb.toString();
+        System.out.println(sb.toString());
     }
 
     /**
