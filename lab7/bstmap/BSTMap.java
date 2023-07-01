@@ -167,9 +167,10 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
      * @param targetNode the node that need be removed;
      */
     private V remove(Node<K, V> parent, Node<K, V> targetNode) {
-        // Preparation
-        int direction;
+        // Get direction, return v;
         V v = targetNode.value;
+
+        int direction;
         if (parent == null) {
             direction = 0;
         } else {
