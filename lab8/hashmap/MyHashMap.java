@@ -241,7 +241,7 @@ public class MyHashMap<K, V> implements Map61B<K, V> {
     /**
      * Expand the buckets size to current size * EXPAND_FACTOR.
      */
-    private void expandSize(){
+    private void expandSize() {
         if (((double) size()) / this.buckets.length <= maxLoad) {
             return;
         }

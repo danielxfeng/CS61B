@@ -2,7 +2,7 @@ package bstmap;
 
 import java.util.*;
 
-public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
+public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
 
     private int size;
     private Node<K, V> root;
@@ -17,7 +17,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         private Node<K, V> left;
         private Node<K, V> right;
 
-        private Node (K key, V value) {
+        private Node(K key, V value) {
             this.key = key;
             this.value = value;
             this.left = null;
@@ -202,7 +202,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         return v;
     }
 
-    private Node<K, V>[] getNode (Node<K, V> node, boolean matchValue, K key, V value, Node<K, V> parent) {
+    private Node<K, V>[] getNode(Node<K, V> node, boolean matchValue, K key, V value, Node<K, V> parent) {
         if (node == null) { // Under the leaf, not find;
             return null;
         }
@@ -244,7 +244,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
         return node.right;
     }
     
-    private K findMax(Node<K, V>node, K maxKey) {
+    private K findMax(Node<K, V> node, K maxKey) {
         if (node == null) {
             return maxKey;
         }
