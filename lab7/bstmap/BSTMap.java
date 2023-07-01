@@ -70,8 +70,8 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
     @Override
     public Set<K> keySet() {
         Set<K> keys = new HashSet<>();
-        return keySet(root, keys); // if you want to call a Recursion version.
-        // return keySet(keys); // if you want to call an Iteration version.
+        // return keySet(root, keys); // if you want to call a Recursion version.
+        return keySet(keys); // if you want to call an Iteration version.
     }
 
     /**
@@ -92,21 +92,24 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V>{
      */
     private Set<K> keySet(Set<K> keys) {
 
+        if (root == null) {
+            return null;
+        }
+
         // set a queue and add the nodes that have not been iterated to the queue.
         Deque<Node<K, V>> queue = new ArrayDeque<>();
         queue.addLast(root);
 
         // iterate when there is node that has not been iterated.
         while (!queue.isEmpty()) {
-
-            Node<K, V> curr = queue.getFirst();
-            if (null == curr) {
-                break;
-            }
-
+            Node<K, V> curr = queue.pollFirst();
             keys.add(curr.key);
-            queue.addLast(curr.left);
-            queue.addLast(curr.right);
+            if (curr.left != null) {
+                queue.addLast(curr.left);
+            }
+            if (curr.right != null) {
+                queue.addLast(curr.right);
+            }
         }
         return keys;
     }
