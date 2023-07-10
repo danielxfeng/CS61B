@@ -6,8 +6,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.TreeMap;
 
-import gitlet.Commit.Cmt;
 import static gitlet.Utils.*;
+import static gitlet.Commit.Cmt;
+
 
 
 /** Represents a gitlet repository.
@@ -18,7 +19,7 @@ import static gitlet.Utils.*;
 public class Repository {
 
     /** The current working directory. */
-    public static final File CWD = join("/Users/hf/JavaProjects/CS61B/CS61B/proj2/myTest"); // new File(System.getProperty("user.dir"));
+    public static final File CWD =  new File(System.getProperty("user.dir")); // join("/Users/hf/JavaProjects/CS61B/CS61B/proj2/myTest");
 
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
@@ -134,20 +135,23 @@ public class Repository {
      */
     private boolean setCommitTree(TreeMap<String, String> tree) {
         String[] stageFiles = stage.getFilesFromStage();
-        if (stageFiles.length == 0) {
+        if (stageFiles == null || stageFiles.length == 0) {
             return false;
         }
 
         Cmt currCommit = commits.getCommit(branches.getHead());
         String[] commitFiles = Commit.getFileNames(currCommit);
 
-        for (String fileName: commitFiles) { // deal with the currCommit
-            if (stage.removedStageHas(fileName)) { // Un-track the removed files.
-                continue;
-            }
+        if (commitFiles != null) {
+            for (String fileName: commitFiles) { // deal with the currCommit
+                if (stage.removedStageHas(fileName)) { // Un-track the removed files.
+                    continue;
+                }
 
-            tree.put(fileName, Commit.getHashOfFile(currCommit, fileName));
+                tree.put(fileName, Commit.getHashOfFile(currCommit, fileName));
+            }
         }
+
 
         for (String fileName: stageFiles) { // deal with the stage
             tree.put(fileName, stage.getHashForFileInStage(fileName));
@@ -365,7 +369,7 @@ public class Repository {
      *  Take the file from LAST commit to overwrite the version of the work dir.
      */
     public void checkout(String fileName) {
-        checkout(true, branches.getCurrBranch(), fileName);
+        checkout(true, branches.getHead(), fileName);
     }
 
     /** An Actual Checkout Method by a branch. */
@@ -428,4 +432,13 @@ public class Repository {
     public void merge(String arg) {
         //TODO
     }
+
+    // for debug
+    public Commit getCommits() {
+        return commits;
+    }
+
+    public Stage getStage() {
+        return stage;
+    };
 }

@@ -32,9 +32,12 @@ public class Stage {
     public Stage() {
         try {
             this.stage = (TreeMap<String, String>) readObject(STAGE_FILE, TreeMap.class);
-            this.removed = (TreeSet<String>) readObject(REMOVED_STAGE_FILE, TreeSet.class);
         } catch (IllegalArgumentException e) {
             this.stage = new TreeMap<>();
+        }
+        try {
+            this.removed = (TreeSet<String>) readObject(REMOVED_STAGE_FILE, TreeSet.class);
+        } catch (IllegalArgumentException e) {
             this.removed = new TreeSet<>();
         }
     }

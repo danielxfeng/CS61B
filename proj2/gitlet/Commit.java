@@ -2,6 +2,8 @@ package gitlet;
 
 
 import java.io.File;
+import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Date;
@@ -40,8 +42,8 @@ public class Commit {
      */
     private TreeMap<String, String> shortCommits;
 
-    /** Cmt is a nested class which respects a commit. */
-    protected static class Cmt {
+    /** Cmt is a support class which respects a commit. */
+    protected static class Cmt implements Serializable {
 
         /** The message of this Commit. */
         private final String message;
@@ -125,7 +127,7 @@ public class Commit {
      */
     public String newCommit(String msg, TreeMap<String, String> tree, String parent) {
         long ts = (new Date()).getTime();
-        String hashCode = sha1(tree.hashCode(), msg, parent, ts);
+        String hashCode = sha1(String.valueOf(tree.hashCode()), msg, parent, String.valueOf(ts));
         Cmt commit = new Cmt(msg, ts, hashCode, tree, parent);
         shortCommits.put(Commit.getShortHashCode(hashCode), hashCode);
         commits.put(hashCode, commit);
@@ -183,7 +185,10 @@ public class Commit {
     /** Return the Date Time of the commit. */
     public static String getDateTime(Cmt commit) {
         Date date = new Date(commit.timeStamp);
-        return date.toString();
+        String pattern = "E MMM F HH:mm:ss yyyy Z";
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+
+        return simpleDateFormat.format(date);
     }
 
     /** Return the message of the commit. */
@@ -193,6 +198,9 @@ public class Commit {
 
     /** Return the file names that tracked in a commit. */
     public static String[] getFileNames(Cmt commit) {
+        if (commit.tree == null) {
+            return null;
+        }
         return commit.tree.keySet().toArray(new String[0]);
     }
 
