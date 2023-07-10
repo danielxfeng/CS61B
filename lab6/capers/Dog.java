@@ -7,7 +7,7 @@ import static capers.Utils.*;
 /** Represents a dog that can be serialized.
  * @author Daniel Feng
 */
-public class Dog implements Serializable { // TODO
+public class Dog implements Serializable {
 
     /** Folder that dogs live in. */
     static final File DOG_FOLDER = join(CapersRepository.CAPERS_FOLDER, "dogs");
