@@ -55,7 +55,8 @@ public class Repository {
      */
     public static void init() {
         if (GITLET_DIR.exists()) { // if Gitlet dir exist, do NOT overwrite it.
-            throw error("A Gitlet version-control system already exists in the current directory.");
+            exitWithMsg("A Gitlet version-control system already exists " +
+                    "in the current directory.");
         }
 
         // Create the folders.
@@ -95,7 +96,8 @@ public class Repository {
         String hashCode = sha1(fileContent);
 
         Cmt head = commits.getCommit(branches.getHead());
-        if (Commit.commitHasFile(head, fileName) && Commit.getHashOfFile(head, fileName).equals(hashCode)) {
+        if (Commit.commitHasFile(head, fileName)
+                && Commit.getHashOfFile(head, fileName).equals(hashCode)) {
             return;
         }
 
@@ -320,8 +322,10 @@ public class Repository {
                 // Staged for addition, but deleted in the working directory;
                 if (!cwdFile.exists()) {
                     res.add(fileName + " (deleted)");
-                    // Staged for addition, but with different contents than in the working directory;
-                } else if (!stage.getHashForFileInStage(fileName).equals(sha1(readContents(cwdFile)))) {
+                    // Staged for addition,
+                    // but with different contents than in the working directory;
+                } else if (!stage.getHashForFileInStage(fileName).equals(
+                        sha1(readContents(cwdFile)))) {
                     res.add(fileName + " (modified)");
                 }
             }
@@ -470,7 +474,8 @@ public class Repository {
         if (unTrackedFiles != null) {
             for (String unTrackedFile : unTrackedFiles) {
                 if (Commit.commitHasFile(commit, unTrackedFile)) {
-                    exitWithMsg("There is an untracked file in the way; delete it, or add and commit it first.");
+                    exitWithMsg("There is an untracked file in the way; " +
+                            "delete it, or add and commit it first.");
                 }
             }
         }
@@ -502,7 +507,8 @@ public class Repository {
     }
 
     /** A helper method for Method Merge to do a commit. */
-    private void merge(String givenPoint, String headPoint, String splitPoint, String givenBranchName) {
+    private void merge(String givenPoint, String headPoint, String splitPoint,
+                       String givenBranchName) {
 
         merge(givenPoint, headPoint, splitPoint);
 
@@ -535,7 +541,7 @@ public class Repository {
                 if (!isInGiven) {
                     if (splitVer.equals(headVer)) { // 3. file D only in Head, rm it;
                         rm(file);
-                    } else { // 8. A special kind of conflict, file was modified in HEAD and deleted in Given Branch.
+                    } else { // 8. Conflict, file modified in HEAD & deleted in Given Branch.
                         blobs.mergeSingleBlob(file, headVer);
                         add(file);
                     }
@@ -546,10 +552,10 @@ public class Repository {
                         continue; // same version, do nothing;
                     }
 
-                    if (splitVer.equals(headVer)) { // 4. file A; overwrite with given version, then add it.
+                    if (splitVer.equals(headVer)) { // 4. fileA; overwrite with given version.
                         blobs.saveBlob(join(CWD, file), blobs.getBlob(givenVer));
                         add(file);
-                    } else if (splitVer.equals(givenVer)) {  //5. file B; overwrite with given version, then add it.
+                    } else if (splitVer.equals(givenVer)) {  //5. fileB; ow with given version.
                         blobs.saveBlob(join(CWD, file), blobs.getBlob(headVer));
                         add(file);
                     } else { // conflict

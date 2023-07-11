@@ -88,8 +88,10 @@ public class Commit {
      */
     public Commit() {
         try {
-            this.commits = (TreeMap<String, Cmt>) readObject(COMMITS_FILE, TreeMap.class);
-            this.shortCommits = (TreeMap<String, String>) readObject(SHORT_COMMITS_FILE, TreeMap.class);
+            this.commits = (TreeMap<String, Cmt>)
+                    readObject(COMMITS_FILE, TreeMap.class);
+            this.shortCommits = (TreeMap<String, String>)
+                    readObject(SHORT_COMMITS_FILE, TreeMap.class);
         } catch (IllegalArgumentException e) {
             this.commits = new TreeMap<>();
             this.shortCommits = new TreeMap<>();

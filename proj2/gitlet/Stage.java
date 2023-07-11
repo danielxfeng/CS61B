@@ -88,7 +88,7 @@ public class Stage {
         this.stage.put(fileName, hashCode);
     }
 
-    /** Add file name to the removed stage, auto serialise the Field removedStage and save it to disk. */
+    /** Add file name to removed stage, auto serialise the Field removed and save it to disk. */
     public void setRemovedStage(String fileName) {
         this.removed.add(fileName);
         saveRemovedStage();
