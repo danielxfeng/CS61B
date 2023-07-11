@@ -81,14 +81,26 @@ public class Blobs {
 
     /** Delete a blob file and serialise the Field blobs and save to disk. */
     public void removeBlob(String hashCode) {
-        restrictedDelete(join(BLOB_DIR, hashCode));
+        File file = join(BLOB_DIR, hashCode);
+        if (file.exists()) {
+            file.delete();
+        }
+        this.blobs.remove(hashCode);
         saveBlobs();
     }
 
     /** Merge 2 conflict blob files and save to word dir. */
     public void mergeBlobs(String fileName, String headVer, String givenVer) {
+        System.out.println("Encountered a merge conflict.");
         String newContent = "<<<<<<< HEAD\n" + getBlobAsString(headVer)
                 + "=======\n" + getBlobAsString(givenVer) + ">>>>>>>\n";
+        writeContents(join(Repository.CWD, fileName), newContent);
+    }
+
+    /** Merge 1 conflict blob file ONLY in HEAD and save to word dir. */
+    public void mergeSingleBlob(String fileName, String ver) {
+        System.out.println("Encountered a merge conflict.");
+        String newContent = "<<<<<<< HEAD\n" + getBlobAsString(ver) + "=======\n>>>>>>>\n";
         writeContents(join(Repository.CWD, fileName), newContent);
     }
 

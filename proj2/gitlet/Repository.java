@@ -42,7 +42,7 @@ public class Repository {
      */
     public static Repository fromFile() {
         if (!GITLET_DIR.exists()) {
-            throw error("Not in an initialized Gitlet directory.");
+            exitWithMsg("Not in an initialized Gitlet directory.");
         }
         return initField();
     }
@@ -84,7 +84,7 @@ public class Repository {
     public void add(String fileName) {
         File file = join(CWD, fileName);
         if (!file.exists() || !file.isFile()) {
-            throw error("File does not exist.");
+            exitWithMsg("File does not exist.");
         }
 
         if (stage.removedStageHas(fileName)) {
@@ -94,11 +94,15 @@ public class Repository {
         byte[] fileContent = readContents(file);
         String hashCode = sha1(fileContent);
 
-        if (blobs.addBlob(hashCode, fileContent)) {
-            stage.setStage(fileName, hashCode);
-            blobs.saveBlobs();
-            stage.saveStage();
+        Cmt head = commits.getCommit(branches.getHead());
+        if (Commit.commitHasFile(head, fileName) && Commit.getHashOfFile(head, fileName).equals(hashCode)) {
+            return;
         }
+
+        blobs.addBlob(hashCode, fileContent);
+        blobs.saveBlobs();
+        stage.setStage(fileName, hashCode);
+        stage.saveStage();
     }
 
     /** Commit to the repository.
@@ -111,13 +115,13 @@ public class Repository {
      */
     public void commit(String message) {
         if (message.length() == 0) { // error when has NOT a commit message
-            throw error("Please enter a commit message.");
+            exitWithMsg("Please enter a commit message.");
         }
 
         TreeMap<String, String> tree = buildCommitTree();
 
         if (tree.isEmpty()) { // quit if NOT changed
-            throw error("No changes added to the commit.");
+            exitWithMsg("No changes added to the commit.");
         }
 
         commit(message, tree, branches.getHead());
@@ -134,26 +138,23 @@ public class Repository {
     /** Return a commit tree. */
     private TreeMap<String, String> buildCommitTree() {
         TreeMap<String, String> tree = new TreeMap<>();
-        String[] stageFiles = stage.getFilesFromStage();
-        if (stageFiles == null || stageFiles.length == 0) {
-            return tree;
-        }
 
         Cmt currCommit = commits.getCommit(branches.getHead());
         String[] commitFiles = Commit.getFileNames(currCommit);
-
         if (commitFiles != null) {
             for (String fileName: commitFiles) { // deal with the currCommit
                 tree.put(fileName, Commit.getHashOfFile(currCommit, fileName));
             }
         }
 
-        for (String fileName: stageFiles) { // deal with the stage
-            tree.put(fileName, stage.getHashForFileInStage(fileName));
+        String[] stageFiles = stage.getFilesFromStage();
+        if (stageFiles != null) {
+            for (String fileName: stageFiles) { // deal with the stage
+                tree.put(fileName, stage.getHashForFileInStage(fileName));
+            }
         }
 
         String[] removedFiles = stage.getFilesFromRemovedStage();
-
         if (removedFiles != null) {
             for (String fileName : removedFiles) {
                 tree.remove(fileName);
@@ -174,7 +175,7 @@ public class Repository {
         boolean inStage = stage.stageHas(fileName);
 
         if (!inLastCommit && !inStage) {
-            throw error("No reason to remove the file.");
+            exitWithMsg("No reason to remove the file.");
         }
 
         if (inLastCommit) {
@@ -183,7 +184,6 @@ public class Repository {
         }
 
         if (inStage) {
-            stage.setRemovedStage(fileName);
             String hashCode = stage.removeFromStage(fileName);
             blobs.removeBlob(hashCode);
         }
@@ -219,20 +219,19 @@ public class Repository {
         System.out.println("commit " + Commit.getHash(commit));
         System.out.println("Date: " + Commit.getDateTime(commit));
         System.out.println(Commit.getMessage(commit));
-        System.out.println();
+        System.out.println(" ");
     }
 
     /** Print the Hash Value of a commit by the message. */
     public void find(String message) {
         Cmt[] cmts = commits.getCommit(true, message);
 
-        if (cmts.length == 0) {
-            System.out.println("Found no commit with that message.");
-            return;
+        if (cmts == null) {
+            exitWithMsg("Found no commit with that message.");
         }
 
         for (Cmt commit : cmts) {
-            System.out.println(Commit.getMessage(commit));
+            System.out.println(Commit.getHash(commit));
         }
     }
 
@@ -284,6 +283,9 @@ public class Repository {
             }
         }
 
+        if (res.isEmpty()) {
+            return null;
+        }
         return res.toArray(new String[0]);
     }
 
@@ -302,9 +304,10 @@ public class Repository {
                     res.add(fileName + " (deleted)");
                     // Tracked in the current commit,
                     // changed in the working directory, but not staged;
-                } else if (!stage.stageHas(fileName)
+                } else if (cwdFile.exists()
+                        && !stage.stageHas(fileName)
                         && !Commit.getHashOfFile(currCommit, fileName).equals(
-                        sha1(readContents(join(CWD, fileName))))) {
+                        sha1(readContents(cwdFile)))) {
                     res.add(fileName + " (modified)");
                 }
             }
@@ -340,11 +343,15 @@ public class Repository {
 
     /** A helper method for map to the actual Checkout Method */
     public void checkout(String[] args) {
-        switch (args.length) {
-            case 2 -> checkout(true, args[1]);
-            case 3 -> checkout(args[2]);
-            case 4 -> checkout(true, args[1], args[3]);
-            default -> throw new IllegalStateException("Unexpected value: " + args.length);
+        final String split = "--";
+        if (args.length == 2) {
+            checkout(true, args[1]);
+        } else if (args.length == 3 && args[1].equals(split)) {
+            checkout(args[2]);
+        } else if (args.length == 4 && args[2].equals(split)) {
+            checkout(true, args[1], args[3]);
+        } else {
+            exitWithMsg("Incorrect operands.");
         }
     }
 
@@ -353,11 +360,11 @@ public class Repository {
      */
     public void checkout(boolean isCommit, String commitId, String fileName) {
         if (!commits.hasCommit(commitId)) {
-            throw error("No commit with that id exists.");
+            exitWithMsg("No commit with that id exists.");
         }
         Cmt commit = commits.getCommit(commitId);
         if (!Commit.commitHasFile(commit, fileName)) {
-            throw error("File does not exist in that commit.");
+            exitWithMsg("File does not exist in that commit.");
         }
 
         File cwdFile = join(CWD, fileName);
@@ -379,10 +386,10 @@ public class Repository {
     /** An Actual Checkout Method by a branch. */
     public void checkout(boolean isBranch, String branchName) {
         if (!branches.hasBranch(branchName)) {
-            throw error("No such branch exists.");
+            exitWithMsg("No such branch exists.");
         }
         if (branches.getCurrBranch().equals(branchName)) {
-            throw error("No need to checkout the current branch.");
+            exitWithMsg("No need to checkout the current branch.");
         }
 
         // checkout the files in the last commit;
@@ -396,7 +403,7 @@ public class Repository {
     /** Add a new branch. */
     public void branch(String branchName) {
         if (branches.hasBranch(branchName)) {
-            throw error("A branch with that name already exists.");
+            exitWithMsg("A branch with that name already exists.");
         }
         branches.setBranches(branchName, branches.getHead());
     }
@@ -404,10 +411,10 @@ public class Repository {
     /** Rm a branch. */
     public void rmBranch(String branchName) {
         if (!branches.hasBranch(branchName)) {
-            throw error("A branch with that name does not exist.");
+            exitWithMsg("A branch with that name does not exist.");
         }
         if (branches.getCurrBranch().equals(branchName)) {
-            throw error("Cannot remove the current branch.");
+            exitWithMsg("Cannot remove the current branch.");
         }
         branches.removeBranch(branchName);
     }
@@ -429,7 +436,7 @@ public class Repository {
      */
     private void reset(String commitHashCode, String previousHashCode) {
         if (!commits.hasCommit(commitHashCode)) {
-            throw error("No commit with that id exists.");
+            exitWithMsg("No commit with that id exists.");
         }
 
         Cmt commit = commits.getCommit(commitHashCode);
@@ -463,7 +470,7 @@ public class Repository {
         if (unTrackedFiles != null) {
             for (String unTrackedFile : unTrackedFiles) {
                 if (Commit.commitHasFile(commit, unTrackedFile)) {
-                    throw error("There is an untracked file in the way; delete it, or add and commit it first.");
+                    exitWithMsg("There is an untracked file in the way; delete it, or add and commit it first.");
                 }
             }
         }
@@ -482,13 +489,13 @@ public class Repository {
 
         // If the split point is the same commit as the given branch
         if (splitPoint.equals(givenPoint)) {
-            throw error("Given branch is an ancestor of the current branch.");
+            exitWithMsg("Given branch is an ancestor of the current branch.");
         }
 
         // If the split point is the current branch
         if (splitPoint.equals(headPoint)) {
-            checkout(branchName);
-            throw error("Current branch fast-forwarded.");
+            checkout(true, branchName);
+            exitWithMsg("Current branch fast-forwarded.");
         }
 
         merge(givenPoint, headPoint, splitPoint, branchName);
@@ -502,6 +509,7 @@ public class Repository {
         String message = "Merged " + givenBranchName + " into " + branches.getCurrBranch() + ".";
         commit(message);
         Commit.addParent(commits.getCommit(branches.getHead()), givenPoint);
+        commits.saveCommits();
     }
 
     /** A helper method for Method Merge to do a commit. */
@@ -511,7 +519,6 @@ public class Repository {
         Cmt splitCmt = commits.getCommit(splitPoint);
 
         String[] givenFiles = Commit.getFileNames(givenCmt);
-        String[] headFiles = Commit.getFileNames(headCmt);
         String[] splitFiles = Commit.getFileNames(splitCmt);
 
         if (splitFiles != null) {
@@ -523,12 +530,16 @@ public class Repository {
                 if (!isInHead) { // 1 & 2. file C&E - not in Both or not in Head, do nothing;
                     continue;
                 }
-
-                if (!isInGiven) {  // 3. file D only in Head, rm it;
-                    rm(file);
+                String splitVer = Commit.getHashOfFile(splitCmt, file);
+                String headVer = Commit.getHashOfFile(headCmt, file);
+                if (!isInGiven) {
+                    if (splitVer.equals(headVer)) { // 3. file D only in Head, rm it;
+                        rm(file);
+                    } else { // 8. A special kind of conflict, file was modified in HEAD and deleted in Given Branch.
+                        blobs.mergeSingleBlob(file, headVer);
+                        add(file);
+                    }
                 } else {  // in Both compare the version;
-                    String splitVer = Commit.getHashOfFile(splitCmt, file);
-                    String headVer = Commit.getHashOfFile(headCmt, file);
                     String givenVer = Commit.getHashOfFile(givenCmt, file);
 
                     if (headVer.equals(givenVer)) {
@@ -566,42 +577,51 @@ public class Repository {
                 }
             }
         }
-
         // Skip the 7. File G only in Head, because we should do nothing.
     }
 
     /** A helper method for Method Merge to do some pre-check. */
     private void checkForMerge(String branchName) {
         if (!branches.hasBranch(branchName)) {
-            throw error("A branch with that name does not exist.");
+            exitWithMsg("A branch with that name does not exist.");
         }
         if (branches.getCurrBranch().equals(branchName)) {
-            throw error("Cannot merge a branch with itself.");
+            exitWithMsg("Cannot merge a branch with itself.");
         }
         checkForUntrackedFiles(commits.getCommit(branches.getBranchPoint(branchName)));
 
         if (stage.getFilesFromStage() != null || stage.getFilesFromRemovedStage() != null) {
-            throw error("You have uncommitted changes.");
+            exitWithMsg("You have uncommitted changes.");
         }
     }
 
-    /** Return the Hash Code of the split point of the given commit and the HEAD. */
+    /** Return the Hash Code of the split point of the given commit and the HEAD. BFS solution*/
     private String getSplitPoint(String firstHashCode, String secondHashCode) {
         HashSet<String> visited = new HashSet<>();
-        while (firstHashCode != null && secondHashCode != null) {
-            if (firstHashCode != null) {
-                if (!visited.add(firstHashCode)) {
-                    return firstHashCode;
-                }
-                firstHashCode = Commit.getParent(commits.getCommit(firstHashCode));
+
+        Deque<String> deque = new ArrayDeque<>();
+        deque.addLast(firstHashCode);
+        deque.addLast(secondHashCode);
+
+        while (!deque.isEmpty()) {
+            String curr = deque.removeFirst();
+            if (visited.contains(curr)) {
+                return curr;
             }
-            if (secondHashCode != null) {
-                if (!visited.add(secondHashCode)) {
-                    return secondHashCode;
+            visited.add(curr);
+            for (String parent : Commit.getParents(commits.getCommit(curr))) {
+                if (parent != null) {
+                    deque.addLast(parent);
                 }
-                secondHashCode = Commit.getParent(commits.getCommit(secondHashCode));
             }
         }
-        throw error("There is NOT a split point, something error!");
+
+        throw error("There is Not a split point! Something is error!");
+    }
+
+    /** Exit program with message */
+    public static void exitWithMsg(String message) {
+        System.out.println(message);
+        System.exit(0);
     }
 }

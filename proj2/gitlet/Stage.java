@@ -52,7 +52,7 @@ public class Stage {
 
     /** Return file names that are tracked by the stage. */
     public String[] getFilesFromStage() {
-        if (stage == null) {
+        if (stage.isEmpty()) {
             return null;
         }
         return stage.keySet().toArray(new String[0]);
@@ -60,7 +60,7 @@ public class Stage {
 
     /** Return file names that are in the removed stage. */
     public String[] getFilesFromRemovedStage() {
-        if (removed == null) {
+        if (removed.isEmpty()) {
             return null;
         }
         return removed.toArray(new String[0]);
@@ -98,7 +98,9 @@ public class Stage {
      *  Auto serialise the Field stage and save it to disk.
      */
     public String removeFromStage(String fileName) {
-        return this.stage.remove(fileName);
+        String value = this.stage.remove(fileName);
+        saveStage();
+        return value;
     }
 
     /** Remove a file from the removed stage.
@@ -106,6 +108,7 @@ public class Stage {
      */
     public void removeFromRemovedStage(String fileName) {
         this.removed.remove(fileName);
+        saveRemovedStage();
     }
 
     /** Serialise current stage and save to disk */

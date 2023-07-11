@@ -24,7 +24,7 @@ public class Commit {
     public static final File SHORT_COMMITS_FILE = join(Repository.OBJ_DIR, "short_commits");
 
     /** The Hash code of the init commit */
-    public static final String INIT_HASH = "0";
+    public static final String INIT_HASH = "000000000000000000000000000000";
 
     /** The Message of the init commit */
     public static final String INIT_MSG = "initial commit";
@@ -78,8 +78,8 @@ public class Commit {
             this.message = message;
             this.timeStamp = timeStamp;
             this.hash = hash;
-            this.tree = null;
-            this.parent = null;
+            this.tree = new TreeMap<>();
+            this.parent = new String[]{null, null};
         }
     }
 
@@ -99,7 +99,8 @@ public class Commit {
 
     /** Return the commit by Hash Code */
     public Cmt getCommit(String hashCode) {
-        if (commits.containsKey(getHashCode(hashCode))) {
+        hashCode = getHashCode(hashCode);
+        if (commits.containsKey(hashCode)) {
             return commits.get(hashCode);
         }
         return null;
@@ -107,9 +108,6 @@ public class Commit {
 
     /** Return the commit[] by message */
     public Cmt[] getCommit(boolean isMsg, String message) {
-        if (!isMsg) {
-            return null;
-        }
 
         ArrayList<Cmt> res = new ArrayList<>();
         for (String hashCode: commits.keySet()) {
@@ -117,6 +115,9 @@ public class Commit {
             if (commit.message.equals(message)) {
                 res.add(commit);
             }
+        }
+        if (res.isEmpty()) {
+            return null;
         }
         return res.toArray(new Cmt[0]);
     }
@@ -148,6 +149,7 @@ public class Commit {
     /** Create an empty init commit and add to the Field commits */
     public void newInitCommit() {
         Cmt commit = new Cmt(INIT_MSG, 0, INIT_HASH);
+        shortCommits.put(Commit.getShortHashCode(INIT_HASH), INIT_HASH);
         commits.put(INIT_HASH, commit);
         saveCommits();
     }
@@ -160,7 +162,7 @@ public class Commit {
 
     /** Return full hashCode */
     private String getHashCode(String hashCode) {
-        if (hashCode.length() == 6) {
+        if (hashCode.length() == 8) {
             return shortCommits.get(hashCode);
         }
         return hashCode;
@@ -168,8 +170,8 @@ public class Commit {
 
     /** Return short hashCode */
     private static String getShortHashCode(String hashCode) {
-        if (hashCode.length() > 6) {
-            return hashCode.substring(0, 6);
+        if (hashCode.length() > 8) {
+            return hashCode.substring(0, 8);
         }
         return hashCode;
     }

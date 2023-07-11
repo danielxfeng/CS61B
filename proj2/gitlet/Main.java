@@ -20,7 +20,7 @@ public class Main {
      */
     public static void main(String[] args) {
         if (args.length == 0) { // if NO command
-            throw error("Please enter a command.");
+            Repository.exitWithMsg("Please enter a command.");
         }
 
         switch (args[0]) {
@@ -49,11 +49,11 @@ public class Main {
                 Repository.fromFile().globalLog();
             }
             case "find" -> {
-                validateNumArgs(args, 1);
+                validateNumArgs(args, 2);
                 Repository.fromFile().find(args[1]);
             }
             case "status" -> {
-                validateNumArgs(args, 0);
+                validateNumArgs(args, 1);
                 Repository.fromFile().status();
             }
             case "checkout" -> {
@@ -79,7 +79,7 @@ public class Main {
                 validateNumArgs(args, 2);
                 Repository.fromFile().merge(args[1]);
             }
-            default -> throw error("No command with that name exists.");
+            default -> Repository.exitWithMsg("No command with that name exists.");
         }
     }
 
