@@ -55,8 +55,8 @@ public class Repository {
      */
     public static void init() {
         if (GITLET_DIR.exists()) { // if Gitlet dir exist, do NOT overwrite it.
-            exitWithMsg("A Gitlet version-control system already exists " +
-                    "in the current directory.");
+            exitWithMsg("A Gitlet version-control system already exists "
+                    + "in the current directory.");
         }
 
         // Create the folders.
@@ -474,8 +474,8 @@ public class Repository {
         if (unTrackedFiles != null) {
             for (String unTrackedFile : unTrackedFiles) {
                 if (Commit.commitHasFile(commit, unTrackedFile)) {
-                    exitWithMsg("There is an untracked file in the way; " +
-                            "delete it, or add and commit it first.");
+                    exitWithMsg("There is an untracked file in the way; "
+                            + "delete it, or add and commit it first.");
                 }
             }
         }
