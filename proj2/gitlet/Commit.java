@@ -118,8 +118,7 @@ public class Commit {
                 res.add(commit);
             }
         }
-
-        return (Cmt[]) res.toArray();
+        return res.toArray(new Cmt[0]);
     }
 
     /** Return all commits */

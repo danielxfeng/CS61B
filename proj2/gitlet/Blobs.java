@@ -42,7 +42,7 @@ public class Blobs {
     /** Return the byte[] of a file from disk by its Hash Code. */
     public byte[] getBlob(String hashCode) {
         if (!blobs.contains(hashCode)) {
-           throw error("The blob file is NOT exist, check the hashCode first!");
+            throw error("The blob file is NOT exist, check the hashCode first!");
         }
 
         return readContents(join(BLOB_DIR, hashCode));

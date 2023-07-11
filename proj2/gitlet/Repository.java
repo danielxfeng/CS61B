@@ -16,7 +16,8 @@ import static gitlet.Commit.Cmt;
 public class Repository {
 
     /** The current working directory. */
-    public static final File CWD =  new File(System.getProperty("user.dir")); // join("/Users/hf/JavaProjects/CS61B/CS61B/proj2/myTest");
+    public static final File CWD =  new File(System.getProperty("user.dir"));
+    // join("/Users/hf/JavaProjects/CS61B/CS61B/proj2/myTest");
 
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
@@ -366,7 +367,7 @@ public class Repository {
             byte[] content = blobs.getBlob(commitHashCode);
             blobs.saveBlob(cwdFile, content);
         }
-     }
+    }
 
     /** An Actual Checkout Method by a file.
      *  Take the file from LAST commit to overwrite the version of the work dir.
@@ -498,7 +499,7 @@ public class Repository {
 
         merge(givenPoint, headPoint, splitPoint);
 
-        String message = "Merged " + givenBranchName + " into " + branches.getCurrBranch() +".";
+        String message = "Merged " + givenBranchName + " into " + branches.getCurrBranch() + ".";
         commit(message);
         Commit.addParent(commits.getCommit(branches.getHead()), givenPoint);
     }
@@ -512,8 +513,6 @@ public class Repository {
         String[] givenFiles = Commit.getFileNames(givenCmt);
         String[] headFiles = Commit.getFileNames(headCmt);
         String[] splitFiles = Commit.getFileNames(splitCmt);
-
-        TreeMap<String, String> tree = new TreeMap<>();
 
         if (splitFiles != null) {
             for (String file : splitFiles) {
