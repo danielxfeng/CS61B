@@ -3,11 +3,9 @@ package gitlet;
 import static gitlet.Utils.error;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
- * 
  * It takes in arguments from the command line and based on the command
  * (the first element of args array) calls the corresponding command in Repository 
  * which will actually execute the logic of the command.
- *
  * It also validates the arguments based on the command to ensure 
  * that enough arguments were passed in.
  * 
@@ -22,7 +20,7 @@ public class Main {
      */
     public static void main(String[] args) {
         if (args.length == 0) { // if NO command
-            exitWithMessage("Please enter a command.");
+            throw error("Please enter a command.");
         }
 
         switch (args[0]) {
@@ -81,14 +79,8 @@ public class Main {
                 validateNumArgs(args, 2);
                 Repository.fromFile().merge(args[1]);
             }
-            default -> exitWithMessage("No command with that name exists.");
+            default -> throw error("No command with that name exists.");
         }
-    }
-
-    /** Print the MESSAGE, then leave. */
-    public static void exitWithMessage(String message) {
-        System.out.println(message);
-        System.exit(0);
     }
 
     /**

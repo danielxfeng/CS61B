@@ -48,6 +48,15 @@ public class Blobs {
         return readContents(join(BLOB_DIR, hashCode));
     }
 
+    /** Return the String of a file from disk by its Hash Code. */
+    private String getBlobAsString(String hashCode) {
+        if (!blobs.contains(hashCode)) {
+            throw error("The blob file is NOT exist, check the hashCode first!");
+        }
+
+        return readContentsAsString(join(BLOB_DIR, hashCode));
+    }
+
     /**
      * Add the blob file to disk if not exist.
      * 1. Save the blob file to disk.
@@ -74,6 +83,27 @@ public class Blobs {
     public void removeBlob(String hashCode) {
         restrictedDelete(join(BLOB_DIR, hashCode));
         saveBlobs();
+    }
+
+    /** Merge 2 conflict blob files and save to word dir. */
+    public void mergeBlobs(String fileName, String headVer, String givenVer) {
+        String newContent = "<<<<<<< HEAD\n" + getBlobAsString(headVer)
+                + "=======\n" + getBlobAsString(givenVer) + ">>>>>>>\n";
+        writeContents(join(Repository.CWD, fileName), newContent);
+    }
+
+    /** Save the blob file to work dir. */
+    public void saveBlob(File file, byte[] content) {
+        writeContents(file, (Object) content);
+    }
+
+    /** Merge 2 conflict blobs but one is deleted. */
+    public void mergeBlobs(boolean isHeadDeleted, String fileName, String ver) {
+        if (isHeadDeleted) {
+            mergeBlobs(fileName, "", ver);
+        } else {
+            mergeBlobs(fileName, ver, "");
+        }
     }
 
     /** Serialise the Field blobs and write to disk. */

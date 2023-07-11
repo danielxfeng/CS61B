@@ -1,10 +1,7 @@
 package gitlet;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 import static gitlet.Utils.*;
 import static gitlet.Commit.Cmt;
@@ -44,7 +41,7 @@ public class Repository {
      */
     public static Repository fromFile() {
         if (!GITLET_DIR.exists()) {
-            Main.exitWithMessage("Not in an initialized Gitlet directory.");
+            throw error("Not in an initialized Gitlet directory.");
         }
         return initField();
     }
@@ -57,7 +54,7 @@ public class Repository {
      */
     public static void init() {
         if (GITLET_DIR.exists()) { // if Gitlet dir exist, do NOT overwrite it.
-            Main.exitWithMessage("A Gitlet version-control system already exists in the current directory.");
+            throw error("A Gitlet version-control system already exists in the current directory.");
         }
 
         // Create the folders.
@@ -78,8 +75,7 @@ public class Repository {
             repo.stage = new Stage();
             return repo;
         } catch (IllegalArgumentException  e) {
-            Main.exitWithMessage(e.getMessage());
-            return null;
+            throw error(e.getMessage());
         }
     }
 
@@ -117,26 +113,29 @@ public class Repository {
             throw error("Please enter a commit message.");
         }
 
-        TreeMap<String, String> tree = new TreeMap<>();
-        boolean isChanged = setCommitTree(tree);
+        TreeMap<String, String> tree = buildCommitTree();
 
-        if (!isChanged) { // quit if NOT changed
-            Main.exitWithMessage("No changes added to the commit.");
+        if (tree.isEmpty()) { // quit if NOT changed
+            throw error("No changes added to the commit.");
         }
 
-        String newHashCode = commits.newCommit(message, tree, branches.getHead());
+        commit(message, tree, branches.getHead());
+
+    }
+
+    /** A helper method for Commit to commit. */
+    private void commit(String message, TreeMap<String, String> tree, String parent) {
+        String newHashCode = commits.newCommit(message, tree, parent);
         stage.initStage();
         branches.setCurrentHead(newHashCode);
     }
 
-    /** Iterate the file name in last commit and the stage to build the commit tree this time.
-     *  @param tree the tree should be built.
-     *  @return true if the stage updated.
-     */
-    private boolean setCommitTree(TreeMap<String, String> tree) {
+    /** Return a commit tree. */
+    private TreeMap<String, String> buildCommitTree() {
+        TreeMap<String, String> tree = new TreeMap<>();
         String[] stageFiles = stage.getFilesFromStage();
         if (stageFiles == null || stageFiles.length == 0) {
-            return false;
+            return tree;
         }
 
         Cmt currCommit = commits.getCommit(branches.getHead());
@@ -144,20 +143,23 @@ public class Repository {
 
         if (commitFiles != null) {
             for (String fileName: commitFiles) { // deal with the currCommit
-                if (stage.removedStageHas(fileName)) { // Un-track the removed files.
-                    continue;
-                }
-
                 tree.put(fileName, Commit.getHashOfFile(currCommit, fileName));
             }
         }
-
 
         for (String fileName: stageFiles) { // deal with the stage
             tree.put(fileName, stage.getHashForFileInStage(fileName));
         }
 
-        return true;
+        String[] removedFiles = stage.getFilesFromRemovedStage();
+
+        if (removedFiles != null) {
+            for (String fileName : removedFiles) {
+                tree.remove(fileName);
+            }
+        }
+
+        return tree;
     }
 
     /** Un-track a file.
@@ -180,6 +182,7 @@ public class Repository {
         }
 
         if (inStage) {
+            stage.setRemovedStage(fileName);
             String hashCode = stage.removeFromStage(fileName);
             blobs.removeBlob(hashCode);
         }
@@ -230,7 +233,6 @@ public class Repository {
         for (Cmt commit : cmts) {
             System.out.println(Commit.getMessage(commit));
         }
-
     }
 
     /** Print Fields: Branches, Stage, Removed Stage.
@@ -257,7 +259,7 @@ public class Repository {
         statusPrintHelper("Modifications Not Staged For Commit", modifiedFiles);
 
         String[] unTrackedFiles = getUnTrackedFiles();
-        statusPrintHelper("Untracked Files", modifiedFiles);
+        statusPrintHelper("Untracked Files", unTrackedFiles);
 
     }
 
@@ -272,14 +274,11 @@ public class Repository {
         }
 
         Cmt currCommit = commits.getCommit(branches.getHead());
-        List<String> currFiles = Arrays.asList(Commit.getFileNames(currCommit));
-        List<String> stageFiles = Arrays.asList(stage.getFilesFromStage());
-        List<String> removedFiles = Arrays.asList(stage.getFilesFromRemovedStage());
 
         for (String fileName : cwdFiles) {
-            if ((!currFiles.contains(fileName)
-                    && !stageFiles.contains(fileName))
-                    || removedFiles.contains(fileName)) {
+            if ((!Commit.commitHasFile(currCommit, fileName)
+                    && !stage.stageHas(fileName))
+                    || stage.removedStageHas(fileName)) {
                 res.add(fileName);
             }
         }
@@ -293,42 +292,47 @@ public class Repository {
 
         Cmt currCommit = commits.getCommit(branches.getHead());
         String[] currFiles = Commit.getFileNames(currCommit);
-        for (String fileName : currFiles) {
-            File cwdFile = join(CWD, fileName);
-            // Not staged for removal, but tracked in the current commit
-            // and deleted from the working directory.
-            if (!cwdFile.exists()) {
-                if (!stage.removedStageHas(fileName)) {
+        if (currFiles != null) {
+            for (String fileName : currFiles) {
+                File cwdFile = join(CWD, fileName);
+                // Not staged for removal, but tracked in the current commit
+                // and deleted from the working directory.
+                if (!cwdFile.exists() && !stage.removedStageHas(fileName)) {
                     res.add(fileName + " (deleted)");
+                    // Tracked in the current commit,
+                    // changed in the working directory, but not staged;
+                } else if (!stage.stageHas(fileName)
+                        && !Commit.getHashOfFile(currCommit, fileName).equals(
+                        sha1(readContents(join(CWD, fileName))))) {
+                    res.add(fileName + " (modified)");
                 }
-                // Tracked in the current commit,
-                // changed in the working directory, but not staged;
-            } else if (!stage.stageHas(fileName)
-                    && !Commit.getHashOfFile(currCommit, fileName).equals(
-                            sha1(readContents(join(CWD, fileName))))) {
-                res.add(fileName + " (modified)");
             }
         }
 
         String[] stageFiles = stage.getFilesFromStage();
-        for (String fileName : stageFiles) {
-            File cwdFile = join(CWD, fileName);
-            // Staged for addition, but deleted in the working directory;
-            if (!cwdFile.exists()) {
-                res.add(fileName + " (deleted)");
-                // Staged for addition, but with different contents than in the working directory;
-            } else if (!stage.getHashForFileInStage(fileName).equals(sha1(readContents(cwdFile)))) {
-                res.add(fileName + " (modified)");
+        if (stageFiles != null) {
+            for (String fileName : stageFiles) {
+                File cwdFile = join(CWD, fileName);
+                // Staged for addition, but deleted in the working directory;
+                if (!cwdFile.exists()) {
+                    res.add(fileName + " (deleted)");
+                    // Staged for addition, but with different contents than in the working directory;
+                } else if (!stage.getHashForFileInStage(fileName).equals(sha1(readContents(cwdFile)))) {
+                    res.add(fileName + " (modified)");
+                }
             }
         }
+
         return res.toArray(new String[0]);
     }
 
     /** A helper method for Method Status to deal with the format problem. */
     private void statusPrintHelper(String title, String[] arr) {
         System.out.println("=== " + title + " ===");
-        for (String str : arr) {
-            System.out.println(str);
+        if (arr != null) {
+            for (String str : arr) {
+                System.out.println(str);
+            }
         }
         System.out.println();
     }
@@ -342,7 +346,6 @@ public class Repository {
             default -> throw new IllegalStateException("Unexpected value: " + args.length);
         }
     }
-
 
     /** An Actual Checkout Method by a commit and a file.
      *  Take a FILE from THE commit to overwrite the version of the work dir.
@@ -361,7 +364,7 @@ public class Repository {
 
         if (!cwdFile.exists() || !commitHashCode.equals(sha1(readContents(cwdFile)))) {
             byte[] content = blobs.getBlob(commitHashCode);
-            writeContents(cwdFile, (Object) content);
+            blobs.saveBlob(cwdFile, content);
         }
      }
 
@@ -380,30 +383,13 @@ public class Repository {
         if (branches.getCurrBranch().equals(branchName)) {
             throw error("No need to checkout the current branch.");
         }
-        String[] unTrackedFiles = getUnTrackedFiles();
-        if (unTrackedFiles != null && unTrackedFiles.length > 0) {
-            throw error("There is an untracked file in the way; delete it, or add and commit it first.");
-        }
 
         // checkout the files in the last commit;
         String branchPoint = branches.getBranchPoint(branchName);
-        List<String> files = Arrays.asList(Commit.getFileNames(commits.getCommit(branchPoint)));
-
-        for (String file : files) {
-            checkout(true, branchPoint, file);
-        }
-
-        // delete the files in working dir but not be tracked.
-        List<String> cwdFiles = plainFilenamesIn(CWD);
-        for (String cwdFile : cwdFiles) {
-            if (!files.contains(cwdFile)) {
-                restrictedDelete(join(CWD, cwdFile));
-            }
-        }
+        reset(branchPoint, branches.getHead());
 
         // set the point
         branches.setCurrBranch(branchName);
-
     }
 
     /** Add a new branch. */
@@ -425,20 +411,198 @@ public class Repository {
         branches.removeBranch(branchName);
     }
 
-    public void reset(String arg) {
-        //TODO
+    /**
+     * Checks out all the files tracked by the given commit.
+     * Removes tracked files that are not present in that commit.
+     * Also moves the current branch’s head to that commit node.
+     */
+    public void reset(String commitHashCode) {
+        reset(commitHashCode, branches.getHead());
+        branches.setCurrentHead(commitHashCode);
     }
 
-    public void merge(String arg) {
-        //TODO
+    /**
+     * Checks out all the files tracked by the given commit.
+     * Removes tracked files that are not present in that commit.
+     * Also moves the current branch’s head to that commit node.
+     */
+    private void reset(String commitHashCode, String previousHashCode) {
+        if (!commits.hasCommit(commitHashCode)) {
+            throw error("No commit with that id exists.");
+        }
+
+        Cmt commit = commits.getCommit(commitHashCode);
+
+        checkForUntrackedFiles(commit);
+
+        String[] files = Commit.getFileNames(commit);
+
+        if (files != null) {
+            for (String file : files) {
+                checkout(true, commitHashCode, file);
+            }
+        }
+
+        // delete the files in previous commit but not in given commit.
+        String[] lastFiles = Commit.getFileNames(commits.getCommit(previousHashCode));
+        if (lastFiles != null) {
+            for (String lastFile : lastFiles) {
+                if (!Commit.commitHasFile(commit, lastFile)) {
+                    restrictedDelete(join(CWD, lastFile));
+                }
+            }
+        }
+
+        stage.initStage();
     }
 
-    // for debug
-    public Commit getCommits() {
-        return commits;
+    /** Find the untracked file but in given commit, throw an error and quit the program. */
+    private void checkForUntrackedFiles(Cmt commit) {
+        String[] unTrackedFiles = getUnTrackedFiles();
+        if (unTrackedFiles != null) {
+            for (String unTrackedFile : unTrackedFiles) {
+                if (Commit.commitHasFile(commit, unTrackedFile)) {
+                    throw error("There is an untracked file in the way; delete it, or add and commit it first.");
+                }
+            }
+        }
     }
 
-    public Stage getStage() {
-        return stage;
-    };
+    /** Merges files from the given branch into the current branch.
+     *  Mainly deal with the situation that will NOT do a commit.
+     */
+    public void merge(String branchName) {
+        checkForMerge(branchName);
+
+        // get split point
+        String givenPoint = branches.getBranchPoint(branchName);
+        String headPoint = branches.getHead();
+        String splitPoint = getSplitPoint(givenPoint, headPoint);
+
+        // If the split point is the same commit as the given branch
+        if (splitPoint.equals(givenPoint)) {
+            throw error("Given branch is an ancestor of the current branch.");
+        }
+
+        // If the split point is the current branch
+        if (splitPoint.equals(headPoint)) {
+            checkout(branchName);
+            throw error("Current branch fast-forwarded.");
+        }
+
+        merge(givenPoint, headPoint, splitPoint, branchName);
+    }
+
+    /** A helper method for Method Merge to do a commit. */
+    private void merge(String givenPoint, String headPoint, String splitPoint, String givenBranchName) {
+
+        merge(givenPoint, headPoint, splitPoint);
+
+        String message = "Merged " + givenBranchName + " into " + branches.getCurrBranch() +".";
+        commit(message);
+        Commit.addParent(commits.getCommit(branches.getHead()), givenPoint);
+    }
+
+    /** A helper method for Method Merge to do a commit. */
+    private void merge(String givenPoint, String headPoint, String splitPoint) {
+        Cmt givenCmt = commits.getCommit(givenPoint);
+        Cmt headCmt = commits.getCommit(headPoint);
+        Cmt splitCmt = commits.getCommit(splitPoint);
+
+        String[] givenFiles = Commit.getFileNames(givenCmt);
+        String[] headFiles = Commit.getFileNames(headCmt);
+        String[] splitFiles = Commit.getFileNames(splitCmt);
+
+        TreeMap<String, String> tree = new TreeMap<>();
+
+        if (splitFiles != null) {
+            for (String file : splitFiles) {
+
+                boolean isInGiven = Commit.commitHasFile(givenCmt, file);
+                boolean isInHead = Commit.commitHasFile(headCmt, file);
+
+                if (!isInHead) { // 1 & 2. file C&E - not in Both or not in Head, do nothing;
+                    continue;
+                }
+
+                if (!isInGiven) {  // 3. file D only in Head, rm it;
+                    rm(file);
+                } else {  // in Both compare the version;
+                    String splitVer = Commit.getHashOfFile(splitCmt, file);
+                    String headVer = Commit.getHashOfFile(headCmt, file);
+                    String givenVer = Commit.getHashOfFile(givenCmt, file);
+
+                    if (headVer.equals(givenVer)) {
+                        continue; // same version, do nothing;
+                    }
+
+                    if (splitVer.equals(headVer)) { // 4. file A; overwrite with given version, then add it.
+                        blobs.saveBlob(join(CWD, file), blobs.getBlob(givenVer));
+                        add(file);
+                    } else if (splitVer.equals(givenVer)) {  //5. file B; overwrite with given version, then add it.
+                        blobs.saveBlob(join(CWD, file), blobs.getBlob(headVer));
+                        add(file);
+                    } else { // conflict
+                        blobs.mergeBlobs(file, headVer, givenVer);
+                        add(file);
+                    }
+                }
+            }
+        }
+
+        if (givenFiles != null) {
+            for (String file : givenFiles) {
+                boolean isSplit = Commit.commitHasFile(splitCmt, file);
+                if (isSplit) { // Skip the file in split.
+                    continue;
+                }
+                boolean isHead = Commit.commitHasFile(headCmt, file);
+                String givenVer = Commit.getHashOfFile(givenCmt, file);
+                if (!isHead) { // 6. File F; overwrite with given version, then add it.
+                    blobs.saveBlob(join(CWD, file), blobs.getBlob(givenVer));
+                    add(file);
+                } else { // conflict;
+                    blobs.mergeBlobs(file, Commit.getHashOfFile(headCmt, file), givenVer);
+                    add(file);
+                }
+            }
+        }
+
+        // Skip the 7. File G only in Head, because we should do nothing.
+    }
+
+    /** A helper method for Method Merge to do some pre-check. */
+    private void checkForMerge(String branchName) {
+        if (!branches.hasBranch(branchName)) {
+            throw error("A branch with that name does not exist.");
+        }
+        if (branches.getCurrBranch().equals(branchName)) {
+            throw error("Cannot merge a branch with itself.");
+        }
+        checkForUntrackedFiles(commits.getCommit(branches.getBranchPoint(branchName)));
+
+        if (stage.getFilesFromStage() != null || stage.getFilesFromRemovedStage() != null) {
+            throw error("You have uncommitted changes.");
+        }
+    }
+
+    /** Return the Hash Code of the split point of the given commit and the HEAD. */
+    private String getSplitPoint(String firstHashCode, String secondHashCode) {
+        HashSet<String> visited = new HashSet<>();
+        while (firstHashCode != null && secondHashCode != null) {
+            if (firstHashCode != null) {
+                if (!visited.add(firstHashCode)) {
+                    return firstHashCode;
+                }
+                firstHashCode = Commit.getParent(commits.getCommit(firstHashCode));
+            }
+            if (secondHashCode != null) {
+                if (!visited.add(secondHashCode)) {
+                    return secondHashCode;
+                }
+                secondHashCode = Commit.getParent(commits.getCommit(secondHashCode));
+            }
+        }
+        throw error("There is NOT a split point, something error!");
+    }
 }

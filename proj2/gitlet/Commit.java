@@ -60,15 +60,26 @@ public class Commit {
         private final TreeMap<String, String> tree;
 
         /** The Hash Value of the parent commit of this Commit*/
-        private final String parent;
+        private final String[] parent;
 
+        /** The constructor for only one parent. */
         public Cmt(String message, long timeStamp, String hash,
                    TreeMap<String, String> tree, String parent) {
             this.message = message;
             this.timeStamp = timeStamp;
             this.hash = hash;
             this.tree = tree;
-            this.parent = parent;
+            this.parent = new String[2];
+            this.parent[0] = parent;
+        }
+
+        /** The constructor for the init commit. */
+        private Cmt(String message, long timeStamp, String hash) {
+            this.message = message;
+            this.timeStamp = timeStamp;
+            this.hash = hash;
+            this.tree = null;
+            this.parent = null;
         }
     }
 
@@ -137,7 +148,7 @@ public class Commit {
 
     /** Create an empty init commit and add to the Field commits */
     public void newInitCommit() {
-        Cmt commit = new Cmt(INIT_MSG, 0, INIT_HASH, null, null);
+        Cmt commit = new Cmt(INIT_MSG, 0, INIT_HASH);
         commits.put(INIT_HASH, commit);
         saveCommits();
     }
@@ -167,8 +178,13 @@ public class Commit {
     //---------------------------------------------------------------//
     // The properties of a commit.
 
-    /** Return the Hash Code of the parent commit. */
+    /** Return the Hash Code of the 1ST parent commit. */
     public static String getParent(Cmt commit) {
+        return commit.parent[0];
+    }
+
+    /** Return the Hash Code of the parents commit. */
+    public static String[] getParents(Cmt commit) {
         return commit.parent;
     }
 
@@ -207,5 +223,10 @@ public class Commit {
     /** Return whether the file names is tracked in a commit. */
     public static boolean commitHasFile(Cmt commit, String fileName) {
         return commit.tree.containsKey(fileName);
+    }
+
+    /** Add the second parent to a Commit */
+    public static void addParent(Cmt commit, String givenPoint) {
+        commit.parent[1] = givenPoint;
     }
 }

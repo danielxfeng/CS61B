@@ -10,7 +10,6 @@ import static gitlet.Utils.*;
  * The Field branches is a TreeMap of the branches.
  * Key: name of the branch; Value: the Hash Value of current commit of this branch.
  * The Field currBranch is the name of the current branch.
- *
  * All setting methods will automatically serialise the Fields and save to disk.
  */
 public class Branches {
@@ -81,7 +80,9 @@ public class Branches {
         return branches.containsKey(branchName);
     }
 
-    /** Update the Hash Code of the current Commit of current Branch as well as HEAD. */
+    /** Update the Hash Code of the current Commit of current Branch as well as HEAD.
+     *  Serialise the Field branches and save it to disk.
+     */
     public void setCurrentHead(String newHashCode) {
         branches.put(currBranch, newHashCode);
         saveBranches();

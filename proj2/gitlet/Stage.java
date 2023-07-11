@@ -42,30 +42,33 @@ public class Stage {
         }
     }
 
-    /** Clear the current stage, and serialise the Filed stage and save it to disk. */
+    /** Clear the current stage, and serialise the Fields stage && removed and save it to disk. */
     public void initStage() {
         this.stage = new TreeMap<>();
+        this.removed = new TreeSet<>();
         saveStage();
+        saveRemovedStage();
     }
 
     /** Return file names that are tracked by the stage. */
     public String[] getFilesFromStage() {
+        if (stage == null) {
+            return null;
+        }
         return stage.keySet().toArray(new String[0]);
     }
 
     /** Return file names that are in the removed stage. */
     public String[] getFilesFromRemovedStage() {
+        if (removed == null) {
+            return null;
+        }
         return removed.toArray(new String[0]);
     }
 
     /** Return Hash Code of a file in the stage. */
     public String getHashForFileInStage(String fileName) {
         return stage.get(fileName);
-    }
-
-    /** Return the point to the stage. UNSAFE! BE SURE YOU WANT IT */
-    protected TreeMap<String, String> getStageUnsafeMethod() {
-        return stage;
     }
 
     /** Return if a file is in the stage. */
