@@ -50,7 +50,7 @@ public class Stage {
         saveRemovedStage();
     }
 
-    /** Return file names that are tracked by the stage. */
+    /** Return file names that are tracked by the stage, may return null if it is empty. */
     public String[] getFilesFromStage() {
         if (stage.isEmpty()) {
             return null;
@@ -58,7 +58,7 @@ public class Stage {
         return stage.keySet().toArray(new String[0]);
     }
 
-    /** Return file names that are in the removed stage. */
+    /** Return file names that are in the removed stage, may return null if it is empty. */
     public String[] getFilesFromRemovedStage() {
         if (removed.isEmpty()) {
             return null;

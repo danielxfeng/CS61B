@@ -109,15 +109,6 @@ public class Blobs {
         writeContents(file, (Object) content);
     }
 
-    /** Merge 2 conflict blobs but one is deleted. */
-    public void mergeBlobs(boolean isHeadDeleted, String fileName, String ver) {
-        if (isHeadDeleted) {
-            mergeBlobs(fileName, "", ver);
-        } else {
-            mergeBlobs(fileName, ver, "");
-        }
-    }
-
     /** Serialise the Field blobs and write to disk. */
     public void saveBlobs() {
         writeObject(BLOBS_FILE, blobs);

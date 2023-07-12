@@ -70,7 +70,7 @@ public class Branches {
         return branches.get(branchName);
     }
 
-    /** Get all branch names */
+    /** Get all branch names, may return null. */
     public String[] getBranches() {
         return branches.keySet().toArray(new String[0]);
     }

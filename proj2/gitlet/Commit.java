@@ -108,7 +108,7 @@ public class Commit {
         return null;
     }
 
-    /** Return the commit[] by message */
+    /** Return the commit[] by message, may return null if it is empty. */
     public Cmt[] getCommit(boolean isMsg, String message) {
 
         ArrayList<Cmt> res = new ArrayList<>();
@@ -124,7 +124,7 @@ public class Commit {
         return res.toArray(new Cmt[0]);
     }
 
-    /** Return all commits */
+    /** Return all commits, may return null if it is empty.*/
     public Cmt[] getAllCommits() {
         return commits.values().toArray(new Cmt[0]);
     }
@@ -186,7 +186,7 @@ public class Commit {
         return commit.parent[0];
     }
 
-    /** Return the Hash Code of the parents commit. */
+    /** Return the Hash Code of the parents commit, may return null if it is the init commit. */
     public static String[] getParents(Cmt commit) {
         return commit.parent;
     }
@@ -215,7 +215,7 @@ public class Commit {
         return commit.message;
     }
 
-    /** Return the file names that tracked in a commit. */
+    /** Return the file names that tracked in a commit, may return null if it is empty.*/
     public static String[] getFileNames(Cmt commit) {
         if (commit.tree == null) {
             return null;
