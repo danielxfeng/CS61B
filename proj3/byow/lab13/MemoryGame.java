@@ -1,12 +1,23 @@
 package byow.lab13;
 
-import byow.Core.RandomUtils;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Random;
 
+/**
+ * A small Memory game.
+ * This game is much like the electronic toy Simon,
+ * but on a computer and with a keyboard instead of with 4 colored buttons.
+ * The goal of the game will be to type in a randomly generated target string of characters
+ * after it is briefly displayed on the screen one letter at a time.
+ * The target string starts off as a single letter,
+ * but for each successful string entered,
+ * the game gets harder by making the target string longer.
+ *
+ * source: <a href="https://sp21.datastructur.es/materials/lab/lab13/lab13">...</a>
+ */
 public class MemoryGame {
     /** The width of the window of this game. */
     private int width;
@@ -34,8 +45,9 @@ public class MemoryGame {
             return;
         }
 
-        long seed = Long.parseLong(args[0]);
-        MemoryGame game = new MemoryGame(40, 40, seed);
+        // long seed = Long.parseLong(args[0]);
+        long seed = 38384;
+        MemoryGame game = new MemoryGame(50, 40, seed);
         game.startGame();
     }
 
@@ -53,32 +65,87 @@ public class MemoryGame {
         StdDraw.clear(Color.BLACK);
         StdDraw.enableDoubleBuffering();
 
-        //TODO: Initialize random number generator
+        this.rand = new Random(seed);
     }
 
+    /** Return the random string with the length N. */
     public String generateRandomString(int n) {
-        //TODO: Generate random string of letters of length n
-        return null;
+        final int lengthOfAlphabets = 26;
+        StringBuilder sb = new StringBuilder(n);
+        for (int i = 0; i < n; i++) {
+            int idx = rand.nextInt(lengthOfAlphabets);
+            sb.append(CHARACTERS[idx]);
+        }
+        return sb.toString();
     }
 
+    /** Draw a frame with the text S to screen, and pause for pauseTime milliseconds. */
+    public void drawFrame(String s, int pauseTime) {
+        StdDraw.clear(StdDraw.BLACK);
+        StdDraw.setPenColor(StdDraw.WHITE);
+        if (!gameOver) {
+            int y = height - 3;
+            StdDraw.textLeft(0, y, "Round: " + round);
+            StdDraw.textRight(width, y, ENCOURAGEMENT[rand.nextInt(7)]);
+            String turn;
+            if (playerTurn) {
+                turn = "Type!";
+            } else {
+                turn = "Watch!";
+            }
+            StdDraw.text(width / 2, y, turn);
+            StdDraw.line(0, height - 4, width, height - 4);
+        }
+        StdDraw.text(width / 2, height / 2, s);
+        StdDraw.show();
+        StdDraw.pause(pauseTime);
+    }
+
+    /** Draw a frame with the text S to screen, and pause for 100 milliseconds. */
     public void drawFrame(String s) {
-        //TODO: Take the string and display it in the center of the screen
-        //TODO: If game is not over, display relevant game information at the top of the screen
+        drawFrame(s, 100);
     }
 
+    /** Draw the frame letter by letter. */
     public void flashSequence(String letters) {
-        //TODO: Display each character in letters, making sure to blank the screen between letters
+        for (int i = 0; i < letters.length(); i++) {
+            drawFrame(Character.toString(letters.charAt(i)), 1000);
+            drawFrame("", 500);
+        }
     }
 
+    /** Return the input string when the length is reached to N. */
     public String solicitNCharsInput(int n) {
-        //TODO: Read n letters of player input
-        return null;
+        StringBuilder sb = new StringBuilder();
+        int i = 0;
+        while (i < n) {
+            while (StdDraw.hasNextKeyTyped()) {
+                sb.append(StdDraw.nextKeyTyped());
+                drawFrame(sb.toString());
+                i++;
+            }
+        }
+        return sb.toString();
     }
 
+    /** Start the game. */
     public void startGame() {
-        //TODO: Set any relevant variables before the game starts
-
-        //TODO: Establish Engine loop
+        round = 1;
+        gameOver = false;
+        while (!gameOver) {
+            playerTurn = false;
+            drawFrame("Round: " + round, 500);
+            String randomStr = generateRandomString(round);
+            flashSequence(randomStr);
+            playerTurn = true;
+            drawFrame("");
+            String input = solicitNCharsInput(round);
+            if (input.equals(randomStr)) {
+                round++;
+            } else {
+                gameOver = true;
+                drawFrame("Game Over! You made it to round: " + round);
+            }
+        }
     }
-
 }
