@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 
 
 /** Assorted utilities.
@@ -117,7 +118,6 @@ class Utils {
         return Paths.get(first.getPath(), others).toFile();
     }
 
-
     /* SERIALIZATION UTILITIES */
 
     /**
@@ -133,5 +133,15 @@ class Utils {
         } catch (IOException excp) {
             throw new RuntimeException("Internal error serializing commit.");
         }
+    }
+
+    /** Return a random UUID. */
+    public static String getRandomUUID() {
+        return UUID.randomUUID().toString();
+    }
+
+    /** Return the distance by 2 given points. */
+    public static double getDistance (int x1, int y1, int x2, int y2) {
+        return Math.abs(Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)));
     }
 }

@@ -1,115 +1,35 @@
 package byow.Core;
 
-import byow.TileEngine.TETile;
-import byow.TileEngine.Tileset;
-
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * This class represents a room.
  * The room is a square.
  */
-public class Room implements Serializable {
+public class Room extends Construction implements Serializable {
 
-    /** The point of northwest corner. */
-    private Point nw;
-    /** The point of northeast corner. */
-    private Point ne;
     /** The point of southwest corner. */
-    private Point sw;
-    /** The point of southeast corner. */
-    private Point se;
+    private final Point sw;
     /** The width of the room. */
-    private final List<Point> gates;
-    /** The name of a room. */
-    private String key;
-    private int width;
+    private final int width;
     /** The height of the room. */
-    private int height;
+    private final int height;
     /** The max side length of the room. */
-    protected static final int MAX_SIDE_LENGTH = 7;
+    protected static final int MAX_SIDE_LENGTH = 10;
     /** The min side length of the room. */
-    protected static final int MIN_SIDE_LENGTH = 2;
-    /** The min numbers of rooms. */
-    protected static final int MIN_ROOMS = 4;
-    /** The max rooms density. */
-    protected static final double MAX_ROOM_DENSITY = 0.3;
-
-    /** Create a room by given the random generator, northwest point, width and height. */
-    public Room(Random rand, Point nw, int width, int height) {
-        this.nw = nw;
-        this.width = width;
-        this.height = height;
-        this.ne = nw.getShiftPoint(width, 0);
-        this.sw = nw.getShiftPoint(0, -height);
-        this.se = nw.getShiftPoint(width, -height);
-        this.key = Frame.getRandomUUID();
-        this.gates = new ArrayList<>();
-    }
+    protected static final int MIN_SIDE_LENGTH = 4;
 
     /** Create a room by a given random generator and lBound which is the bound of width and height. */
     public Room(Random rand) {
-        this(rand, new Point(rand.nextInt(), rand.nextInt()), Room.getRandomSide(rand), Room.getRandomSide(rand));
-    }
-
-    /** Return the point of a room. */
-    public Point getPoint() {
-        //TODO
-        return null;
-    }
-
-    /** Return the key of a room. */
-    public String getKey() {
-        return this.key;
-    }
-
-    /** Draw a border in a tiles. */
-    public void draw(TETile[][] tiles){
-        drawBorder(tiles, nw, nw);
-        drawBorder(tiles, se, ne);
-        drawBorder(tiles, sw, nw);
-        drawBorder(tiles, sw, se);
-        if (!this.gates.isEmpty()) {
-            for (Point gate : this.gates) {
-                tiles[gate.getX()][gate.getY()] = Tileset.NOTHING;
-            }
-        }
-    }
-
-    /** Draw a border with 2 points. */
-    private void drawBorder(TETile[][] tiles, Point start, Point end) {
-        int sv; // start point of traveler.
-        int ev; // end point of traveler.
-        boolean isX; // if X is the traveller.
-        int fixed; // the value of the one who do NOT move.
-
-        if (start.getX() == end.getX()) {
-            sv = start.getY();
-            ev = end.getY();
-            isX = false;
-            fixed = start.getX();
-        } else {
-            sv = start.getX();
-            ev = end.getY();
-            isX = true;
-            fixed = start.getY();
-        }
-
-        for (int i = sv; i <= ev; i++) {
-            if (isX) {
-                tiles[i][fixed] = Tileset.NOTHING;
-            } else {
-                tiles[fixed][i] = Tileset.NOTHING;
-            }
-        }
-    }
-
-    /** Set the point of gate by the given point. */
-    public void setGate(Point p) {
-        this.gates.add(p);
+        this.width = Room.getRandomSide(rand);
+        this.height = Room.getRandomSide(rand);
+        this.sw = new Point(rand.nextInt(Engine.WIDTH - width),
+                rand.nextInt(Engine.HEIGHT - height));
+        this.central = new Point(this.sw.getX() + (this.width / 2),
+                this.sw.getY() + (this.height / 2));
+        this.gates = new Point[4];
+        generateNewRoom();
     }
 
     /** Return a side length by a given random generator. */
@@ -117,17 +37,76 @@ public class Room implements Serializable {
         return rand.nextInt(MAX_SIDE_LENGTH - MIN_SIDE_LENGTH) + MIN_SIDE_LENGTH;
     }
 
-    /** Return the points of 4 corners of a room. */
-    public Point[] getFourCorners() {
-        return new Point[]{this.nw, this.ne, this.sw, this.se};
+    /** Return the central point of the room. */
+    public Point getCentralPoint() {
+        return this.central;
     }
-    /** Return if the points is in this room. */
-    public boolean isInRoom(Point[] points) {
-        for (Point p : points) {
-            if (1 == 1) { //TODO
-                return false;
+
+    /** Return the width of the room. */
+    public int getWidth() {
+        return width;
+    }
+
+    /** Return the width of the room. */
+    public int getHeight() {
+        return height;
+    }
+
+    /** Return the int index of the southwest corner of the room. */
+    public int getSw() {
+        return this.sw.parseIndex();
+    }
+
+    /** Return a deque of points which are possible for gate. */
+    public Deque<Point> getGate(Point targetPoint) {
+        ArrayDeque<Point> deque= new ArrayDeque<>();
+        //TODO
+        return deque;
+    }
+
+    /**
+     * Return a TreeMap of a construction with:
+     * key "walls" : a point[] of walls;
+     * key "bricks" : a point[] of bricks, which also means the interior of a construction.
+     * key "gates" : a point[4] of gates, example: gates[FRAME.NORTH] = null means
+     * there is not a gate on the north of the construction.
+     */
+    @Override
+    public TreeMap<Integer, Point[]> getPoints() {
+        TreeMap<Integer, Point[]> roomPoints = new TreeMap<>();
+        roomPoints.put(Construction.WALLS, walls);
+        roomPoints.put(Construction.BRICKS, bricks);
+        roomPoints.put(Construction.GATES, gates);
+        return roomPoints;
+    }
+
+    /** Create a room by the fields of the class */
+    private void generateNewRoom() {
+        ArrayList<Point> walls = new ArrayList<>();
+        ArrayList<Point> bricks = new ArrayList<>();
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (i == 0 || i == width - 1 || j == 0 || j == height - 1) {
+                    walls.add(sw.getShiftPoint(i, j));
+                } else {
+                    bricks.add(sw.getShiftPoint(i, j));
+                }
             }
         }
-        return true;
+        this.walls = walls.toArray(new Point[0]);
+        this.bricks = bricks.toArray(new Point[0]);
+    }
+
+    /** Set the point of gate by the given point. */
+    public void setGate(Point p) {
+        //TODO this.gates[direction] = p;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || o.getClass() != Room.class) {
+            return false;
+        }
+        return this.getKey().equals(((Room) o).getKey());
     }
 }
