@@ -22,7 +22,7 @@ public class Engine implements Serializable {
      */
     private final TETile[][] tiles;
     /** The seed used to generate the world. */
-    private int seed;
+    private long seed;
     /**
      * Save the tileBrick of every tile.
      */
@@ -81,9 +81,9 @@ public class Engine implements Serializable {
             char c = input.charAt(i);
             if (c == 's') {
                 try {
-                    this.seed = Integer.parseInt(input.substring(1, i));
+                    this.seed = Long.parseLong(input.substring(1, i));
                 } catch (Exception e) {
-                    throw new IllegalArgumentException("Invalid input string.");
+                    throw new IllegalArgumentException("Invalid seed.");
                 }
                 Frame frame = new Frame(seed, tileBricks);
                 frame.create();
@@ -129,7 +129,8 @@ public class Engine implements Serializable {
     /* For test only */
     public static void main(String[] args) {
         Engine engine = new Engine();
-        engine.interactWithInputString("n16376s");
+        engine.interactWithInputString("n455857754086099036s");
+        engine.fillTiles();
         engine.render();
     }
 }
