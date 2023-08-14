@@ -1,8 +1,4 @@
-package byow.Core.Create;
-
-import byow.Core.Engine;
-import byow.Core.Point;
-import byow.Core.TileBrick;
+package byow.Core;
 
 import java.util.ArrayList;
 import java.util.List;

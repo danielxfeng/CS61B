@@ -1,6 +1,5 @@
 package byow.Core;
 
-import byow.Core.Create.Frame;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 
@@ -103,12 +102,19 @@ public class Engine implements Serializable {
     /**
      * Fill the tiles.
      */
-    private void fillTiles() {
+    private void fillTiles(TETile[][] tiles) {
         for (int x = 0; x < WIDTH; x++) {
             for (int y = 0; y < HEIGHT; y++) {
                 tiles[x][y] = tileBricks[Point.parseIndex(x, y)].getStyle();
             }
         }
+    }
+
+    /**
+     * Fill the tiles.
+     */
+    private void fillTiles() {
+        fillTiles(this.tiles);
     }
 
     /**
@@ -129,8 +135,8 @@ public class Engine implements Serializable {
     /* For test only */
     public static void main(String[] args) {
         Engine engine = new Engine();
-        engine.interactWithInputString("n455857754086099036s");
-        engine.fillTiles();
+        TETile[][] tiles = engine.interactWithInputString("n5197880843569031643s");
+        engine.fillTiles(tiles);
         engine.render();
     }
 }

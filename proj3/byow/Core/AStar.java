@@ -1,6 +1,4 @@
-package byow.Core.Create;
-
-import byow.Core.*;
+package byow.Core;
 
 import java.util.ArrayList;
 import java.util.List;

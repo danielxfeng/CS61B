@@ -1,4 +1,4 @@
-package byow.Core.Create;
+package byow.Core;
 
 /**
  * This class is a simple DisjointSet data structure implementation.
