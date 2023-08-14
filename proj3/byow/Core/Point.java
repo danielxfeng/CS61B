@@ -2,7 +2,6 @@ package byow.Core;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Random;
 
 /**
  * This class represent a x,y coordinate system.
@@ -10,78 +9,159 @@ import java.util.Random;
 public class Point implements Serializable {
     private final int x;
     private final int y;
+    /**
+     * Follows are the 4 directions.
+     */
+    public static final int NORTH = 0;
+    public static final int SOUTH = 1;
+    public static final int WEST = 2;
+    public static final int EAST = 3;
+    public static final int DIRECTION_INIT = 4;
     public static final int WIDTH_FACTOR = (int) Math.pow(10, String.valueOf(Engine.WIDTH).length());
-    private static final int[][] NEIGHBOUR_SHIFTS = {{-1, 0}, {0, -1}, {1, 0}, {0 ,1}};
 
-    /** Create an instance by given X and Y. */
+    /**
+     * Create an instance by given X and Y.
+     */
     public Point(int x, int y) {
         this.x = x;
         this.y = y;
     }
 
-    /** Create an instance by random x and y.
-     *
-     * @param rand the random.
-     * @param xBound the bound of x.
-     * @param yBound the bound of y.
+    /**
+     * return the X
      */
-    public Point(Random rand, int xBound, int yBound) {
-        this.x = rand.nextInt(xBound);
-        this.y = rand.nextInt(yBound);
-    }
-
-    /** return the X */
     public int getX() {
         return this.x;
     }
 
-    /** return the Y */
+    /**
+     * return the Y
+     */
     public int getY() {
         return this.y;
     }
 
-    /** return the point by shift value. */
-    public Point getShiftPoint(int dx, int dy) {
-        return new Point(this.x + dx, this.y + dy);
+    /**
+     * return the neighbours of a point.
+     */
+    public static ArrayList<Integer> getNeighboursFromIndex(Point point) {
+        ArrayList<Integer> neighbourList = new ArrayList<>();
+        if (!point.checkBound()) {
+            throw new IndexOutOfBoundsException("The given point"
+                    + "(" + point.getX() + "," + point.getY() + ")"
+                    + " is out of bound.");
+        }
+
+        Point[] neighbours = getNeighbours(point);
+
+        for (Point neighbour : neighbours) {
+            if (neighbour.checkBound()) {
+                neighbourList.add(neighbour.parseIndex());
+            }
+        }
+        return neighbourList;
     }
 
-    /** return the index value (xy) of the point. */
-    public int parseIndex() {
-        return this.getX() * WIDTH_FACTOR + this.getY();
+    /**
+     * Return the next point of the given point and the given direction.
+     */
+    public static Point getNextPoint(Point point, int direction) {
+        return switch (direction) {
+            case NORTH -> point.getShiftPoint(0, 1);
+            case SOUTH -> point.getShiftPoint(0, -1);
+            case WEST -> point.getShiftPoint(-1, 0);
+            case EAST -> point.getShiftPoint(1, 0);
+            default -> throw new IndexOutOfBoundsException("No such direction.");
+        };
     }
 
-    /** return the point by the index value. */
+    /**
+     * Return the neighbours of the given point by the sequence NSWE.
+     */
+    public static Point[] getNeighbours(Point point) {
+        return new Point[]{getNextPoint(point, NORTH), getNextPoint(point, SOUTH),
+                getNextPoint(point, WEST), getNextPoint(point, EAST)};
+    }
+
+    /**
+     * Return the neighbours of the given int point.
+     */
+    public static Point[] getNeighbours(int iPoint) {
+        return getNeighbours(Point.parseFromIndex(iPoint));
+    }
+
+    /**
+     * return the direction of the given point.
+     */
+    public static int getDirection(int iPoint, int prevIPoint) {
+        Point point = parseFromIndex(iPoint);
+        Point prevPoint = parseFromIndex(prevIPoint);
+        if (point.getX() == prevPoint.getX()) {
+            if (point.getY() > prevPoint.getY()) {
+                return NORTH;
+            } else {
+                return SOUTH;
+            }
+        } else {
+            if (point.getX() > prevPoint.getX()) {
+                return EAST;
+            } else {
+                return WEST;
+            }
+        }
+    }
+
+    /**
+     * return the point by the index value.
+     */
     public static Point parseFromIndex(int index) {
         return new Point(index / WIDTH_FACTOR, index % WIDTH_FACTOR);
     }
 
-    /** return the neighbours of a point. */
-    public static ArrayList<Integer> getNeighboursFromIndex(Point point) {
-        ArrayList<Integer> neighbours = new ArrayList<>();
-        if (!point.checkBound()) {
-            throw new IndexOutOfBoundsException("The given point"
-                    + "(" + point.getX() + "," + point.getY() + ")" +
-                    " is out of bound.");
-        }
-        for (int[] neighbourShift : NEIGHBOUR_SHIFTS) {
-            Point neighbour = point.getShiftPoint(neighbourShift[0], neighbourShift[1]);
-            if (neighbour.checkBound()) {
-                neighbours.add(neighbour.parseIndex());
-            }
-        }
-        return neighbours;
+    /**
+     * return the point by shift value.
+     */
+    public Point getShiftPoint(int dx, int dy) {
+        return new Point(this.x + dx, this.y + dy);
     }
 
-    /** return the neighbours of a point by its int index. */
-    public static ArrayList<Integer> getNeighboursFromIndex(int iPoint) {
-        return getNeighboursFromIndex(parseFromIndex(iPoint));
+    /**
+     * return the index value (xy) of the point.
+     */
+    public int parseIndex() {
+        return this.getX() * WIDTH_FACTOR + this.getY();
     }
 
-    /** Check if the point is in the frame. */
+    /**
+     * return the index value (xy) of the x and y.
+     */
+    public static int parseIndex(int x, int y) {
+        return x * WIDTH_FACTOR + y;
+    }
+
+    /**
+     * Check if the point is in the frame.
+     */
     public boolean checkBound() {
-        if (getX() < 0 || getX() >= Engine.WIDTH || getY() < 0 || getY() > Engine.HEIGHT) {
+        return getX() >= 0 && getX() < Engine.WIDTH && getY() >= 0 && getY() <= Engine.HEIGHT;
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(parseIndex());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || o.getClass() != Point.class) {
             return false;
         }
-        return true;
+        Point p = (Point) o;
+        return this.getX() == p.getX() && this.getY() == p.getY();
+    }
+
+    @Override
+    public int hashCode() {
+        return parseIndex();
     }
 }

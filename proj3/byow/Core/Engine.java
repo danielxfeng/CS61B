@@ -1,15 +1,40 @@
 package byow.Core;
 
+import byow.Core.Create.Frame;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
-import byow.TileEngine.Tileset;
 
-public class Engine {
+import java.io.File;
+import java.io.Serializable;
+
+public class Engine implements Serializable {
+
+    /**
+     * The file for serialize and save the instance to disk.
+     */
+    private static final File OBJ_FILE = Utils.join(new File(System.getProperty("user.dir")), "my_world.obj");
     TERenderer ter = new TERenderer();
     /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
-    private Frame frame;
+    /**
+     * The frame is filled by Tiles.
+     */
+    private final TETile[][] tiles;
+    /** The seed used to generate the world. */
+    private int seed;
+    /**
+     * Save the tileBrick of every tile.
+     */
+    private final TileBrick[] tileBricks;
+
+    public Engine() {
+        this.tiles = new TETile[WIDTH][HEIGHT];
+        this.tileBricks = new TileBrick[Frame.VOLUME];
+        for (int i = 0; i < Frame.VOLUME; i++) {
+            this.tileBricks[i] = new TileBrick(i);
+        }
+    }
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
@@ -40,30 +65,71 @@ public class Engine {
      * @return the 2D TETile[][] representing the state of the world
      */
     public TETile[][] interactWithInputString(String input) {
-        // TODO: Fill out this method so that it run the engine using the input
-        // passed in as an argument, and return a 2D tile representation of the
-        // world that would have been drawn if the same inputs had been given
-        // to interactWithKeyboard().
-        //
-        // See proj3.byow.InputDemo for a demo of how you can make a nice clean interface
-        // that works for many different input types.
-
         input = input.toLowerCase();
         char command = input.charAt(0);
-        char stopTag = input.charAt(input.length() - 1);
-        long seed = Integer.parseInt(input.substring(1, input.length() - 1));
-        this.frame = new Frame(WIDTH, HEIGHT, seed);
-        frame.generateRooms();
-        frame.generateHallways();
+        return switch (command) {
+            case 'n' -> newGame(input);
+            default -> throw new IllegalArgumentException("Invalid input string.");
+        };
+    }
+
+    /**
+     * Start a new game with render a frame.
+     */
+    private TETile[][] newGame(String input) {
+        for (int i = 1; i < input.length(); i++) {
+            char c = input.charAt(i);
+            if (c == 's') {
+                try {
+                    this.seed = Integer.parseInt(input.substring(1, i));
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Invalid input string.");
+                }
+                Frame frame = new Frame(seed, tileBricks);
+                frame.create();
+                return this.tiles;
+            }
+        }
+        throw new IllegalArgumentException("Invalid input string.");
+    }
+
+    /**
+     * Read the saved instance variables.
+     */
+    public static Engine readFromFile() {
+        return Utils.readObject(OBJ_FILE, Engine.class);
+    }
+
+    /**
+     * Fill the tiles.
+     */
+    private void fillTiles() {
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                tiles[x][y] = tileBricks[Point.parseIndex(x, y)].getStyle();
+            }
+        }
+    }
+
+    /**
+     * Render the tiles.
+     */
+    private void render() {
         ter.initialize(WIDTH, HEIGHT);
-        TETile[][] tiles = frame.getTiles();
         ter.renderFrame(tiles);
-        return tiles;
+    }
+
+    /**
+     * Save the instance variables to disk.
+     */
+    public void saveToFile() {
+        Utils.writeObject(OBJ_FILE, this);
     }
 
     /* For test only */
     public static void main(String[] args) {
         Engine engine = new Engine();
-        engine.interactWithInputString("n16676s");
+        engine.interactWithInputString("n16376s");
+        engine.render();
     }
 }

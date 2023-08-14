@@ -1,16 +1,11 @@
 package byow.Core;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import byow.Core.Create.Room;
+
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 
@@ -21,7 +16,7 @@ import java.util.UUID;
  *
  *  @author P. N. Hilfinger
  */
-class Utils {
+public class Utils {
 
     /* READING AND WRITING FILE CONTENTS */
 
@@ -140,8 +135,31 @@ class Utils {
         return UUID.randomUUID().toString();
     }
 
-    /** Return the distance by 2 given points. */
-    public static double getDistance (int x1, int y1, int x2, int y2) {
-        return Math.abs(Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2)));
+    /**
+     * Return the distance by 2 given points. Use Manhattan distance here.
+     */
+    public static int getDistance(int x1, int y1, int x2, int y2) {
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    }
+
+    /**
+     * Return the distance by 2 given points. Use Manhattan distance here.
+     */
+    public static int getDistance(Point point1, Point point2) {
+        return getDistance(point1.getX(), point1.getY(), point2.getX(), point2.getY());
+    }
+
+    /**
+     * Return the distance by 2 given points. Use Manhattan distance here.
+     */
+    public static int getDistance(int iPoint1, int iPoint2) {
+        return getDistance(Point.parseFromIndex(iPoint1), Point.parseFromIndex(iPoint2));
+    }
+
+    /**
+     * Return the distance by 1 given point and 1 room. Use Manhattan distance here.
+     */
+    public static int getDistance(int iPoint, Room room) {
+        return getDistance(Point.parseFromIndex(iPoint), room.getCentralPoint());
     }
 }
