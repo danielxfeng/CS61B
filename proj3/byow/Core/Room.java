@@ -1,5 +1,6 @@
 package byow.Core;
 
+import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
 import java.util.ArrayList;
@@ -38,9 +39,6 @@ public class Room extends Construction {
      */
     public Room(Random rand, TileBrick[] tileBricks) {
         super(tileBricks);
-        WALL_TILE = Tileset.WALL;
-        BRICK_TILE = Tileset.FLOOR;
-        GATE_TILE = Tileset.UNLOCKED_DOOR;
         this.width = Room.getRandomLength(rand);
         this.height = Room.getRandomLength(rand);
         this.sw = new Point(rand.nextInt(Engine.WIDTH - width),

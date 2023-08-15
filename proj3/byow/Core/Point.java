@@ -2,6 +2,7 @@ package byow.Core;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * This class represent a x,y coordinate system.
@@ -42,24 +43,48 @@ public class Point implements Serializable {
     }
 
     /**
-     * return the neighbours of a point.
+     * Return the Vision points of the given int point and the vision scope that defined in Game.class.
      */
-    public static ArrayList<Integer> getNeighboursFromIndex(Point point) {
-        ArrayList<Integer> neighbourList = new ArrayList<>();
-        if (!point.checkBound()) {
-            throw new IndexOutOfBoundsException("The given point"
-                    + "(" + point.getX() + "," + point.getY() + ")"
-                    + " is out of bound.");
-        }
-
-        Point[] neighbours = getNeighbours(point);
-
-        for (Point neighbour : neighbours) {
-            if (neighbour.checkBound()) {
-                neighbourList.add(neighbour.parseIndex());
+    private static List<Integer> getVision(int x, int y, int visionScope) {
+        List<Integer> pointList = new ArrayList<>();
+        Point point = new Point(x, y);
+        Point sw = point.getShiftPoint(-visionScope, -visionScope);
+        int startX = sw.getX();
+        int startY = sw.getY();
+        for (int i = startX; i < startX + visionScope * 2 + 1; i++) {
+            for (int j = startY; j < startY + visionScope * 2 + 1; j++) {
+                if (Point.checkBound(i, j)) {
+                    pointList.add(Point.getIPointFromXY(i, j));
+                }
             }
         }
-        return neighbourList;
+        return pointList;
+    }
+
+    public static List<Integer> getVision(int iPoint, int visionScope) {
+        Point point = parseFromIndex(iPoint);
+        return getVision(point.getX(), point.getY(), visionScope);
+    }
+
+    /**
+     * return the direction of the given point.
+     */
+    public static int getDirection(int iPoint, int prevIPoint) {
+        Point point = parseFromIndex(iPoint);
+        Point prevPoint = parseFromIndex(prevIPoint);
+        if (point.getX() == prevPoint.getX()) {
+            if (point.getY() > prevPoint.getY()) {
+                return NORTH;
+            } else {
+                return SOUTH;
+            }
+        } else {
+            if (point.getX() > prevPoint.getX()) {
+                return EAST;
+            } else {
+                return WEST;
+            }
+        }
     }
 
     /**
@@ -91,24 +116,17 @@ public class Point implements Serializable {
     }
 
     /**
-     * return the direction of the given point.
+     * return the point by shift value.
      */
-    public static int getDirection(int iPoint, int prevIPoint) {
-        Point point = parseFromIndex(iPoint);
-        Point prevPoint = parseFromIndex(prevIPoint);
-        if (point.getX() == prevPoint.getX()) {
-            if (point.getY() > prevPoint.getY()) {
-                return NORTH;
-            } else {
-                return SOUTH;
-            }
-        } else {
-            if (point.getX() > prevPoint.getX()) {
-                return EAST;
-            } else {
-                return WEST;
-            }
-        }
+    public Point getShiftPoint(int dx, int dy) {
+        return new Point(this.x + dx, this.y + dy);
+    }
+
+    /**
+     * Return the iPoint from given x and y.
+     */
+    public static int getIPointFromXY(int x, int y) {
+        return x * WIDTH_FACTOR + y;
     }
 
     /**
@@ -119,13 +137,6 @@ public class Point implements Serializable {
     }
 
     /**
-     * return the point by shift value.
-     */
-    public Point getShiftPoint(int dx, int dy) {
-        return new Point(this.x + dx, this.y + dy);
-    }
-
-    /**
      * return the index value (xy) of the point.
      */
     public int parseIndex() {
@@ -133,17 +144,18 @@ public class Point implements Serializable {
     }
 
     /**
-     * return the index value (xy) of the x and y.
+     * Check if the point is in the frame.
      */
-    public static int parseIndex(int x, int y) {
-        return x * WIDTH_FACTOR + y;
+    public static boolean checkBound(int x, int y) {
+        return x >= 0 && x < Engine.WIDTH && y >= 0 && y <= Engine.HEIGHT;
     }
 
     /**
      * Check if the point is in the frame.
      */
-    public boolean checkBound() {
-        return getX() >= 0 && getX() < Engine.WIDTH && getY() >= 0 && getY() <= Engine.HEIGHT;
+    public static boolean checkBound(int iPoint) {
+        Point p = Point.parseFromIndex(iPoint);
+        return checkBound(p.getX(), p.getY());
     }
 
     @Override

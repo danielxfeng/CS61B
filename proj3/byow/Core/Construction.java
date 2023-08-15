@@ -1,6 +1,7 @@
 package byow.Core;
 
 import byow.TileEngine.TETile;
+import byow.TileEngine.Tileset;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,10 +14,12 @@ public abstract class Construction {
     public static final int WALLS = 0;
     public static final int BRICKS = 1;
     public static final int GATES = 2;
-    public static final int NOTHING = 3;
-    public static TETile WALL_TILE;
-    public static TETile BRICK_TILE;
-    public static TETile GATE_TILE;
+    public static final int UNLOCKED_GATES = 3;
+    public static final int NOTHING = 4;
+    public static final TETile WALL_TILE = Tileset.WALL;
+    public static final TETile BRICK_TILE = Tileset.FLOOR;
+    public static final TETile GATE_TILE = Tileset.LOCKED_DOOR;
+    public static final TETile UNLOCKED_GATE_TILE = Tileset.UNLOCKED_DOOR;
     /**
      * The name of the construction.
      */
@@ -52,20 +55,6 @@ public abstract class Construction {
      */
     public String getKey() {
         return this.key;
-    }
-
-    /**
-     * Return a TreeMap of a construction with:
-     * key "walls" : a point[] of walls;
-     * key "bricks" : a point[] of bricks, which also means the interior of a construction.
-     * key "gates" : a point[] of gates
-     */
-    public TreeMap<Integer, List<Point>> getPoints() {
-        TreeMap<Integer, List<Point>> points = new TreeMap<>();
-        points.put(Construction.WALLS, walls);
-        points.put(Construction.BRICKS, bricks);
-        points.put(Construction.GATES, gates);
-        return points;
     }
 
     /**

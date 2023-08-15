@@ -2,6 +2,7 @@ package byow.Core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
@@ -33,6 +34,10 @@ public class AStar {
      * The deque of vertices.
      */
     private final PriorityQueue<Edge> deque;
+    /**
+     * The hallwayMap of the frame.
+     */
+    private final Map<String, Hallway> hallwayMap;
     /**
      * The value of INF.
      */
@@ -102,9 +107,10 @@ public class AStar {
         }
     }
 
-    public AStar(Room room1, Room room2, TileBrick[] tileBricks) {
+    public AStar(Room room1, Room room2, TileBrick[] tileBricks, Map<String, Hallway> hallwayMap) {
         this.startRoom = room1;
         this.targetRoom = room2;
+        this.hallwayMap = hallwayMap;
         this.startPoint = this.startRoom.getCentralPoint().parseIndex();
         this.tileBricks = tileBricks;
         int volume = Frame.VOLUME;
@@ -136,7 +142,9 @@ public class AStar {
             }
             relax(p);
         }
-        throw new RuntimeException("Cannot find a route!");
+        System.out.println("AStar.class: Cannot find a path between 2 rooms: "
+                + startRoom.getCentralPoint() + " and " + targetRoom.getCentralPoint());
+        return null;
     }
 
     /**
@@ -176,16 +184,44 @@ public class AStar {
     private Edge getTargetGate(Edge edge) {
         Point[] neighbours = Point.getNeighbours(getEdgeIndex(edge));
         for (Point neighbour : neighbours) {
-            TileBrick tileBrick = tileBricks[neighbour.parseIndex()];
-            if ((tileBrick.getType() == Construction.WALLS || tileBrick.getType() == Construction.GATES)
-                    && tileBrick.getKey().equals(targetRoom.getKey())
-                    && !targetRoom.isCorner(neighbour)) {
-                Edge target = this.edges[neighbour.parseIndex()];
-                setEdgePrev(target, edge);
-                return target;
+            if (isWallOrGate(neighbour)) {
+                boolean isHallwayToTargetRoom = isHallwayToTargetRoom(neighbour);
+                if (isHallwayToTargetRoom) {
+                    hallwayMap.get(tileBricks[neighbour.parseIndex()].getKey()).addConnectedRoom(startRoom);
+                }
+                if (isTargetRoomButNotCorner(neighbour) || isHallwayToTargetRoom) {
+                    Edge target = this.edges[neighbour.parseIndex()];
+                    setEdgePrev(target, edge);
+                    return target;
+                }
             }
         }
         return null;
+    }
+
+    /**
+     * Return true if the point is a wall of a gate.
+     */
+    private boolean isWallOrGate(Point point) {
+        TileBrick tileBrick = tileBricks[point.parseIndex()];
+        return tileBrick.getType() == Construction.WALLS || tileBrick.getType() == Construction.GATES;
+    }
+
+    /**
+     * Return true if the brick and the point is belonged to the target room.
+     */
+    private boolean isTargetRoomButNotCorner(Point point) {
+        TileBrick tileBrick = tileBricks[point.parseIndex()];
+        return tileBrick.getKey().equals(targetRoom.getKey()) && !targetRoom.isCorner(point);
+    }
+
+    /**
+     * Return true if the brick is a hallway to the target room.
+     */
+    private boolean isHallwayToTargetRoom(Point point) {
+        TileBrick tileBrick = tileBricks[point.parseIndex()];
+        return tileBrick.getConstructionType() == TileBrick.CONSTRUCTION_TYPE_HALLWAY
+                && hallwayMap.get(tileBrick.getKey()).ContainsRoom(targetRoom);
     }
 
     /**

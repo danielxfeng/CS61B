@@ -84,7 +84,6 @@ public class KruskalForMst {
         this.queue = new PriorityQueue<>();
         this.rooms = rooms;
         ArrayList<VertexOfPoints> visited = new ArrayList<>();
-        System.out.println("There are " + rooms.size() + " rooms");
         for (Room currRoom : rooms) {
             for (Room targetRoom : rooms) {
                 if (!currRoom.equals(targetRoom)) {
@@ -96,7 +95,6 @@ public class KruskalForMst {
                 }
             }
         }
-        System.out.println("There are " + queue.size() + " vertexes in the queue.");
     }
 
     /**
@@ -114,7 +112,6 @@ public class KruskalForMst {
                 vertexList.add(new Room[]{vertex.room1, vertex.room2});
             }
         }
-        System.out.println("There are " + vertexList.size() + " vertexes in the list.");
         return vertexList;
     }
 

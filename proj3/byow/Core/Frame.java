@@ -3,6 +3,7 @@ package byow.Core;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.TreeMap;
 
 /**
  * This class respects the frame.
@@ -20,7 +21,10 @@ public class Frame {
     /**
      * The hallways in the frame.
      */
-    private final ArrayList<Hallway> hallways;
+    private final TreeMap<String, Hallway> hallways;
+    /**
+     * The treeMap save the hallway connections.
+     */
     /**
      * The random.
      */
@@ -41,10 +45,10 @@ public class Frame {
     /**
      * Create an empty frame.
      */
-    public Frame(long seed, TileBrick[] tileBricks) {
+    public Frame(Random rand, TileBrick[] tileBricks) {
         this.rooms = new ArrayList<>();
-        this.hallways = new ArrayList<>();
-        this.rand = new Random(seed);
+        this.hallways = new TreeMap<>();
+        this.rand = rand;
         this.tileBricks = tileBricks;
     }
 
@@ -98,7 +102,8 @@ public class Frame {
         KruskalForMst kfm = new KruskalForMst(this.rooms);
         List<Room[]> vertexes = kfm.generateVertexes();
         for (Room[] vertex : vertexes) {
-            this.hallways.add(new Hallway(vertex, this.tileBricks));
+            Hallway newHallway = new Hallway(vertex, this.tileBricks, this.hallways);
+            this.hallways.put(newHallway.getKey(), newHallway);
         }
     }
 }

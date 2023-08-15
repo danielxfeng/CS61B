@@ -2,7 +2,9 @@ package byow.Core;
 
 import byow.TileEngine.Tileset;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents a hallway that implement the A* algorithm for finding the way.
@@ -17,14 +19,21 @@ public class Hallway extends Construction {
      * The room that the hallway ends at.
      */
     private final Room targetRoom;
+    /**
+     * The hallwayMap of the frame.
+     */
+    private final Map<String, Hallway> hallwayMap;
+    /**
+     * The connected rooms.
+     */
+    private final List<String> connectedRooms;
 
     /**
      * Create a hallway by a vertex.
      */
-    public Hallway(Room[] vertex, TileBrick[] properties) {
+    public Hallway(Room[] vertex, TileBrick[] properties, Map<String, Hallway> hallwayMap) {
         super(properties);
-        Hallway.WALL_TILE = Tileset.TREE;
-        Hallway.BRICK_TILE = Tileset.GRASS;
+        this.hallwayMap = hallwayMap;
         Room room1 = vertex[0];
         Room room2 = vertex[1];
         if (room1.getSwIndex() + room1.getNe().parseIndex() < room2.getSwIndex() + room2.getNe().parseIndex()) {
@@ -34,6 +43,7 @@ public class Hallway extends Construction {
             this.startRoom = room2;
             this.targetRoom = room1;
         }
+        this.connectedRooms = new ArrayList<>();
         buildHallway();
     }
 
@@ -41,10 +51,15 @@ public class Hallway extends Construction {
      * Build the hallway by the A* algorithm.
      */
     private void buildHallway() {
-        AStar aStar = new AStar(startRoom, targetRoom, tileBricks);
+        AStar aStar = new AStar(startRoom, targetRoom, tileBricks, hallwayMap);
         List<Point> path = aStar.runAPlus();
+        if (path == null) {
+            return;
+        }
         addPathToHallway(path);
         insertToFrameFields();
+        addConnectedRoom(startRoom);
+        addConnectedRoom(targetRoom);
     }
 
     /**
@@ -87,16 +102,16 @@ public class Hallway extends Construction {
         if (direction != lastDirection && lastDirection != Point.DIRECTION_INIT) {
             Point turn;
             if ((lastDirection == Point.NORTH && direction == Point.EAST)
-                    || (lastDirection == Point.EAST && direction == Point.SOUTH)) {
-                turn = prev.getShiftPoint(-1, 1); // turn right
+                    || (lastDirection == Point.WEST && direction == Point.SOUTH)) {
+                turn = prev.getShiftPoint(-1, 1); // add NorthWest corner;
             } else if (lastDirection == Point.SOUTH && direction == Point.EAST
                     || (lastDirection == Point.WEST && direction == Point.NORTH)) {
-                turn = prev.getShiftPoint(-1, -1); // turn left
+                turn = prev.getShiftPoint(-1, -1); // add SouthWest corner;
             } else if (lastDirection == Point.NORTH && direction == Point.WEST
-                    || (lastDirection == Point.WEST && direction == Point.SOUTH)) {
-                turn = prev.getShiftPoint(1, 1); // turn left
+                    || (lastDirection == Point.EAST && direction == Point.SOUTH)) {
+                turn = prev.getShiftPoint(1, 1); // add NorthEast corner;
             } else {
-                turn = prev.getShiftPoint(1, -1); // turn right
+                turn = prev.getShiftPoint(1, -1); // add SouthEast corner;
             }
             addHallwayWalls(path, turn);
         }
@@ -110,5 +125,19 @@ public class Hallway extends Construction {
                 && tileBricks[point.parseIndex()].getConstructionType() == TileBrick.CONSTRUCTION_TYPE_NOTHING) {
             walls.add(point);
         }
+    }
+
+    /**
+     * Add a room to connected list.
+     */
+    public void addConnectedRoom(Room room) {
+        connectedRooms.add(room.getKey());
+    }
+
+    /**
+     * Check if the connectedRoom contains a room.
+     */
+    public boolean ContainsRoom(Room room) {
+        return connectedRooms.contains(room.getKey());
     }
 }

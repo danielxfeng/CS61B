@@ -1,5 +1,6 @@
 package byow.TileEngine;
 
+import byow.Core.Engine;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.Color;
@@ -29,7 +30,7 @@ public class TERenderer {
      */
     public void initialize(int w, int h, int xOff, int yOff) {
         this.width = w;
-        this.height = h;
+        this.height = h + 5;
         this.xOffset = xOff;
         this.yOffset = yOff;
         StdDraw.setCanvasSize(width * TILE_SIZE, height * TILE_SIZE);
@@ -83,7 +84,7 @@ public class TERenderer {
      * the screen in tiles.
      * @param world the 2D TETile[][] array to render
      */
-    public void renderFrame(TETile[][] world) {
+    public void renderFrame(TETile[][] world, String info) {
         int numXTiles = world.length;
         int numYTiles = world[0].length;
         StdDraw.clear(new Color(0, 0, 0));
@@ -96,6 +97,18 @@ public class TERenderer {
                 world[x][y].draw(x + xOffset, y + yOffset);
             }
         }
+        Font font = new Font("Monaco", Font.BOLD, 15);
+        StdDraw.setFont(font);
+        StdDraw.setPenColor(StdDraw.WHITE);
+        StdDraw.textLeft(0, height - 1, info);
         StdDraw.show();
+    }
+
+    /**
+     * Renders the frame without any additional information.
+     * @param world the 2D TETile[][] array to render
+     */
+    public void renderFrame(TETile[][] world) {
+        renderFrame(world, "");
     }
 }

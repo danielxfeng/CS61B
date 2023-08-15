@@ -1,45 +1,31 @@
 package byow.Core;
 
-import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
+import edu.princeton.cs.introcs.StdDraw;
 
-import java.io.File;
+import java.awt.*;
 import java.io.Serializable;
 
 public class Engine implements Serializable {
 
-    /**
-     * The file for serialize and save the instance to disk.
-     */
-    private static final File OBJ_FILE = Utils.join(new File(System.getProperty("user.dir")), "my_world.obj");
-    TERenderer ter = new TERenderer();
-    /* Feel free to change the width and height. */
     public static final int WIDTH = 80;
     public static final int HEIGHT = 30;
     /**
-     * The frame is filled by Tiles.
+     * The top space of the frame for info.
      */
-    private final TETile[][] tiles;
-    /** The seed used to generate the world. */
-    private long seed;
-    /**
-     * Save the tileBrick of every tile.
-     */
-    private final TileBrick[] tileBricks;
-
-    public Engine() {
-        this.tiles = new TETile[WIDTH][HEIGHT];
-        this.tileBricks = new TileBrick[Frame.VOLUME];
-        for (int i = 0; i < Frame.VOLUME; i++) {
-            this.tileBricks[i] = new TileBrick(i);
-        }
-    }
+    public static final int INFO_HEIGHT = 5;
+    private Game game;
+    private final int PAUSE_TIME = 500;
+    public static final int VISION_SCOPE = 3;
 
     /**
      * Method used for exploring a fresh world. This method should handle all inputs,
      * including inputs from the main menu.
      */
     public void interactWithKeyboard() {
+        KeyInput keyInput = new KeyInput();
+        showMainMenu();
+        parseInput(keyInput);
     }
 
     /**
@@ -63,80 +49,147 @@ public class Engine implements Serializable {
      * @param input the input string to feed to your program
      * @return the 2D TETile[][] representing the state of the world
      */
-    public TETile[][] interactWithInputString(String input) {
-        input = input.toLowerCase();
-        char command = input.charAt(0);
-        return switch (command) {
-            case 'n' -> newGame(input);
-            default -> throw new IllegalArgumentException("Invalid input string.");
-        };
+    public void interactWithInputString(String input) {
+        StrInput strInput = new StrInput(input);
+        parseInput(strInput);
     }
 
     /**
-     * Start a new game with render a frame.
+     * Parse the input.
      */
-    private TETile[][] newGame(String input) {
-        for (int i = 1; i < input.length(); i++) {
-            char c = input.charAt(i);
-            if (c == 's') {
-                try {
-                    this.seed = Long.parseLong(input.substring(1, i));
-                } catch (Exception e) {
-                    throw new IllegalArgumentException("Invalid seed.");
+    private void parseInput(InputMethods input) {
+        final int stage1 = 0;
+        final int stage2 = 1;
+        boolean isFirstCommand = true;
+        boolean waitingForSeed = false;
+        boolean waitingForSaveQ = false;
+        int stage = stage1;
+        StringBuilder sb = new StringBuilder();
+        while (input.possibleNextInput()) {
+            char c = input.getNextKey();
+            if (waitingForSaveQ && c != 'q') {
+                waitingForSaveQ = false;
+            }
+            switch (c) {
+                case 'n' -> {
+                    if (isFirstCommand) {
+                        waitingForSeed = true;
+                        if (input.getClass() == KeyInput.class) {
+                            promptShow();
+                        }
+                    }
                 }
-                Frame frame = new Frame(seed, tileBricks);
-                frame.create();
-                return this.tiles;
+                case 'l' -> {
+                    if (isFirstCommand) {
+                        stage = stage2;
+                        this.game = Game.readFromFile();
+                    }
+                }
+                case 'q' -> {
+                    if (isFirstCommand) {
+                        System.exit(0);
+                    } else if (waitingForSaveQ) {
+                        game.saveToFile();
+                        System.exit(0);
+                    }
+                }
+                case ':' -> {
+                    if (stage == stage2) {
+                        waitingForSaveQ = true;
+                    }
+                }
+                case 's' -> {
+                    if (stage == stage1 && waitingForSeed && sb.length() > 0) {
+                        waitingForSeed = false;
+                        stage = stage2;
+                        this.game = new Game(Long.parseLong(sb.toString()));
+                        sb = new StringBuilder();
+                        game.newWorld();
+                        game.interactiveGame();
+                    } else if (stage == stage2) {
+                        game.move(c);
+                    }
+                }
+                case 'v' -> {
+                    if (stage == stage2) {
+                        if (game.getVisionScope() == 0) {
+                            game.setVisionScope(VISION_SCOPE);
+                        } else {
+                            game.setVisionScope(0);
+                        }
+                        game.fillAllTiles(true);
+                        game.render();
+                    }
+                }
+                default -> {
+                    if (stage == stage2 && (c == 'w' || c == 'a' || c == 'd')) {
+                        game.move(c);
+                    } else if (waitingForSeed && Character.isDigit(c)) {
+                        sb.append(c);
+                        if (input.getClass().equals(KeyInput.class)) {
+                            seedShow(sb.toString());
+                        }
+                    }
+                }
             }
-        }
-        throw new IllegalArgumentException("Invalid input string.");
-    }
-
-    /**
-     * Read the saved instance variables.
-     */
-    public static Engine readFromFile() {
-        return Utils.readObject(OBJ_FILE, Engine.class);
-    }
-
-    /**
-     * Fill the tiles.
-     */
-    private void fillTiles(TETile[][] tiles) {
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
-                tiles[x][y] = tileBricks[Point.parseIndex(x, y)].getStyle();
-            }
+            isFirstCommand = false;
         }
     }
 
     /**
-     * Fill the tiles.
+     * Show main menu.
      */
-    private void fillTiles() {
-        fillTiles(this.tiles);
+    private void showMainMenu() {
+        final int fontSize = 30;
+        final int canvasFactor = 16;
+        final double titleHeight = 4 / 3.0;
+        final double menuHeight = 2.0;
+        final double menuGap = 2.5;
+        StdDraw.setCanvasSize(Engine.WIDTH * canvasFactor,
+                (Engine.HEIGHT + Engine.INFO_HEIGHT) * canvasFactor);
+        Font font = new Font("Monaco", Font.BOLD, fontSize);
+        StdDraw.setFont(font);
+        StdDraw.setXscale(0, Engine.WIDTH);
+        StdDraw.setYscale(0, Engine.HEIGHT);
+        StdDraw.clear(Color.BLACK);
+        StdDraw.enableDoubleBuffering();
+        StdDraw.setPenColor(StdDraw.WHITE);
+        StdDraw.text((double) Engine.WIDTH / 2,
+                Engine.HEIGHT / titleHeight,
+                "CS61B: THE GAME");
+        StdDraw.text((double) Engine.WIDTH / 2,
+                (double) Engine.HEIGHT / menuHeight,
+                "New Game (N)");
+        StdDraw.text((double) Engine.WIDTH / 2,
+                (double) Engine.HEIGHT / menuHeight - menuGap,
+                "Load Game (L)");
+        StdDraw.text((double) Engine.WIDTH / 2,
+                (double) Engine.HEIGHT / menuHeight - menuGap * 2,
+                "Quit (Q)");
+        StdDraw.show();
+        StdDraw.pause(PAUSE_TIME);
     }
 
     /**
-     * Render the tiles.
+     * Show the prompt when player choose new game.
      */
-    private void render() {
-        ter.initialize(WIDTH, HEIGHT);
-        ter.renderFrame(tiles);
+    private void promptShow() {
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(StdDraw.WHITE);
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2,
+                "Please input numbers to generate a world: ");
+        StdDraw.show();
+        StdDraw.pause(PAUSE_TIME);
     }
 
     /**
-     * Save the instance variables to disk.
+     * Show the inout seed when player input.
      */
-    public void saveToFile() {
-        Utils.writeObject(OBJ_FILE, this);
-    }
-
-    /* For test only */
-    public static void main(String[] args) {
-        Engine engine = new Engine();
-        TETile[][] tiles = engine.interactWithInputString("n5197880843569031643s");
-        engine.fillTiles(tiles);
-        engine.render();
+    private void seedShow(String seed) {
+        StdDraw.clear(Color.BLACK);
+        StdDraw.setPenColor(StdDraw.WHITE);
+        StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "Seed: " + seed);
+        StdDraw.show();
+        StdDraw.pause(PAUSE_TIME);
     }
 }
