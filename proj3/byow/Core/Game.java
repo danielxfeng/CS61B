@@ -18,33 +18,17 @@ import java.util.Random;
 public class Game implements Serializable {
 
     /**
-     * The renderer is used to render the frame.
-     */
-    transient TERenderer ter;
-    /**
      * The file for serialize and save the instance to disk.
      */
     private static final File OBJ_FILE = Utils.join(new File(System.getProperty("user.dir")), "my_world.obj");
     /**
-     * The frame is filled by Tiles.
+     * The code of player.
      */
-    private transient TETile[][] tiles;
-    /**
-     * Save the tileBrick of every tile.
-     */
-    private final TileBrick[] tileBricks;
-    /**
-     * The random of the game.
-     */
-    private final transient Random rand;
+    public static final int PLAYER = 100;
     /**
      * The style of player.
      */
     public static final TETile PLAYER_TILE = Tileset.AVATAR;
-    /**
-     * The code of player.
-     */
-    public static final int PLAYER = 100;
     /**
      * The position of the player.
      */
@@ -53,6 +37,22 @@ public class Game implements Serializable {
      * The scope of player version, set to 0 for infinity.
      */
     private int visionScope;
+    /**
+     * Save the tileBrick of every tile.
+     */
+    private final TileBrick[] tileBricks;
+    /**
+     * The frame is filled by Tiles.
+     */
+    private transient TETile[][] tiles;
+    /**
+     * The renderer is used to render the frame.
+     */
+    transient TERenderer ter;
+    /**
+     * The random of the game.
+     */
+    private final transient Random rand;
 
     public Game(long seed) {
         this.rand = new Random(seed);
@@ -80,6 +80,15 @@ public class Game implements Serializable {
     }
 
     /**
+     * Initialise some fields when create and recovery.
+     */
+    private void init() {
+        tiles = new TETile[Engine.WIDTH][Engine.HEIGHT];
+        ter = new TERenderer();
+        ter.initialize(Engine.WIDTH, Engine.HEIGHT);
+    }
+
+    /**
      * Start a new game with render a frame.
      */
     public void newWorld() {
@@ -98,15 +107,6 @@ public class Game implements Serializable {
         game.fillAllTiles(true);
         game.render();
         return game;
-    }
-
-    /**
-     * Initialise some fields when create and recovery.
-     */
-    private void init() {
-        tiles = new TETile[Engine.WIDTH][Engine.HEIGHT];
-        ter = new TERenderer();
-        ter.initialize(Engine.WIDTH, Engine.HEIGHT);
     }
 
     /**

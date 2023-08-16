@@ -21,13 +21,13 @@ public class Hallway extends Construction {
      */
     private final Room targetRoom;
     /**
-     * The hallwayMap of the frame.
-     */
-    private final Map<String, Hallway> hallwayMap;
-    /**
      * The connected rooms.
      */
     private final List<String> connectedRooms;
+    /**
+     * The hallwayMap of the frame.
+     */
+    private final Map<String, Hallway> hallwayMap;
 
     /**
      * Create a hallway by a vertex.
@@ -138,7 +138,7 @@ public class Hallway extends Construction {
     /**
      * Check if the connectedRoom contains a room.
      */
-    public boolean ContainsRoom(Room room) {
+    public boolean containsRoom(Room room) {
         return connectedRooms.contains(room.getKey());
     }
 }

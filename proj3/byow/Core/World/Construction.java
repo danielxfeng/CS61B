@@ -41,7 +41,7 @@ public abstract class Construction {
     /**
      * The properties of the frame.
      */
-    protected transient TileBrick[] tileBricks;
+    protected TileBrick[] tileBricks;
     protected Point central;
 
     protected Construction(TileBrick[] tileBricks) {

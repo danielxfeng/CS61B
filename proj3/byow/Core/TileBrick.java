@@ -26,12 +26,10 @@ public class TileBrick implements Serializable {
     }
 
     /**
-     * Set the value of a tile brick.
+     * Return the constructionKey of a tile brick.
      */
-    public void setValue(int inType, int inConstructionType, String inConstructionKey) {
-        this.type = inType;
-        this.constructionType = inConstructionType;
-        this.constructionKey = inConstructionKey;
+    public String getKey() {
+        return this.constructionKey;
     }
 
     /**
@@ -53,6 +51,13 @@ public class TileBrick implements Serializable {
     }
 
     /**
+     * Return the type of a tile brick.
+     */
+    public int getType() {
+        return this.type;
+    }
+
+    /**
      * Return the hideOne of a tile brick.
      */
     public String getTypeString() {
@@ -64,20 +69,6 @@ public class TileBrick implements Serializable {
             case Game.PLAYER -> getHideOne().getTypeString();
             default -> "Nothing";
         };
-    }
-
-    /**
-     * Return the constructionKey of a tile brick.
-     */
-    public String getKey() {
-        return this.constructionKey;
-    }
-
-    /**
-     * Return the type of a tile brick.
-     */
-    public int getType() {
-        return this.type;
     }
 
     /**
@@ -106,6 +97,15 @@ public class TileBrick implements Serializable {
      */
     public void setType(int type) {
         this.type = type;
+    }
+
+    /**
+     * Set the value of a tile brick.
+     */
+    public void setValue(int inType, int inConstructionType, String inConstructionKey) {
+        this.type = inType;
+        this.constructionType = inConstructionType;
+        this.constructionKey = inConstructionKey;
     }
 
     /**

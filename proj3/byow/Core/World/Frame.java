@@ -27,9 +27,6 @@ public class Frame {
      */
     private final TreeMap<String, Hallway> hallways;
     /**
-     * The treeMap save the hallway connections.
-     */
-    /**
      * The random.
      */
     private final Random rand;

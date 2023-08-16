@@ -15,37 +15,39 @@ import java.util.PriorityQueue;
 public class AStar {
 
     /**
-     * An array of edges.
+     * The value of INF.
      */
-    private final Edge[] edges;
-    /**
-     * The array of tile bricks.
-     */
-    private final TileBrick[] tileBricks;
-    /**
-     * The destination room.
-     */
-    private final Room targetRoom;
+    private final int INF = 99999;
     /**
      * The start room.
      */
     private final Room startRoom;
     /**
-     * The start point.
+     * The destination room.
      */
-    private final int startPoint;
+    private final Room targetRoom;
+    /**
+     * An array of edges.
+     */
+    private final Edge[] edges;
     /**
      * The deque of vertices.
      */
     private final PriorityQueue<Edge> deque;
+
+    /**
+     * The array of tile bricks.
+     */
+    private final TileBrick[] tileBricks;
+
+    /**
+     * The start point.
+     */
+    private final int startPoint;
     /**
      * The hallwayMap of the frame.
      */
     private final Map<String, Hallway> hallwayMap;
-    /**
-     * The value of INF.
-     */
-    private final int INF = 99999;
 
     /**
      * This inner class respects a data structure of an Edge
@@ -225,7 +227,7 @@ public class AStar {
     private boolean isHallwayToTargetRoom(Point point) {
         TileBrick tileBrick = tileBricks[point.parseIndex()];
         return tileBrick.getConstructionType() == TileBrick.CONSTRUCTION_TYPE_HALLWAY
-                && hallwayMap.get(tileBrick.getKey()).ContainsRoom(targetRoom);
+                && hallwayMap.get(tileBrick.getKey()).containsRoom(targetRoom);
     }
 
     /**

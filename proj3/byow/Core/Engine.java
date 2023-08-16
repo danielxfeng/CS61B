@@ -8,53 +8,35 @@ import edu.princeton.cs.introcs.StdDraw;
 import java.awt.*;
 import java.io.Serializable;
 
+/**
+ * This class is to respond the user command.
+ */
 public class Engine implements Serializable {
 
+    /**
+     * The width of the frame.
+     */
     public static final int WIDTH = 80;
+    /**
+     * The height of the frame.
+     */
     public static final int HEIGHT = 30;
     /**
-     * The top space of the frame for info.
+     * The top space for showing the tips of the frame.
      */
     public static final int INFO_HEIGHT = 5;
-    private Game game;
+    /**
+     * The pause time for showing a frame.
+     */
     private final int PAUSE_TIME = 500;
+    /**
+     * The vision scope of the player.
+     */
     public static final int VISION_SCOPE = 3;
-
     /**
-     * Method used for exploring a fresh world. This method should handle all inputs,
-     * including inputs from the main menu.
+     * The main instance of the game.
      */
-    public void interactWithKeyboard() {
-        KeyInput keyInput = new KeyInput();
-        showMainMenu();
-        parseInput(keyInput);
-    }
-
-    /**
-     * Method used for autograding and testing your code. The input string will be a series
-     * of characters (for example, "n123sswwdasdassadwas", "n123sss:q", "lwww". The engine should
-     * behave exactly as if the user typed these characters into the engine using
-     * interactWithKeyboard.
-     *
-     * Recall that strings ending in ":q" should cause the game to quite save. For example,
-     * if we do interactWithInputString("n123sss:q"), we expect the game to run the first
-     * 7 commands (n123sss) and then quit and save. If we then do
-     * interactWithInputString("l"), we should be back in the exact same state.
-     *
-     * In other words, both of these calls:
-     *   - interactWithInputString("n123sss:q")
-     *   - interactWithInputString("lww")
-     *
-     * should yield the exact same world state as:
-     *   - interactWithInputString("n123sssww")
-     *
-     * @param input the input string to feed to your program
-     * @return the 2D TETile[][] representing the state of the world
-     */
-    public void interactWithInputString(String input) {
-        StrInput strInput = new StrInput(input);
-        parseInput(strInput);
-    }
+    private Game game;
 
     /**
      * Parse the input.
@@ -77,7 +59,7 @@ public class Engine implements Serializable {
                     if (isFirstCommand) {
                         waitingForSeed = true;
                         if (input.getClass() == KeyInput.class) {
-                            promptShow();
+                            showPrompt();
                         }
                     }
                 }
@@ -129,13 +111,49 @@ public class Engine implements Serializable {
                     } else if (waitingForSeed && Character.isDigit(c)) {
                         sb.append(c);
                         if (input.getClass().equals(KeyInput.class)) {
-                            seedShow(sb.toString());
+                            showSeed(sb.toString());
                         }
                     }
                 }
             }
             isFirstCommand = false;
         }
+    }
+
+    /**
+     * Method used for exploring a fresh world. This method should handle all inputs,
+     * including inputs from the main menu.
+     */
+    public void interactWithKeyboard() {
+        KeyInput keyInput = new KeyInput();
+        showMainMenu();
+        parseInput(keyInput);
+    }
+
+    /**
+     * Method used for autograding and testing your code. The input string will be a series
+     * of characters (for example, "n123sswwdasdassadwas", "n123sss:q", "lwww". The engine should
+     * behave exactly as if the user typed these characters into the engine using
+     * interactWithKeyboard.
+     *
+     * Recall that strings ending in ":q" should cause the game to quite save. For example,
+     * if we do interactWithInputString("n123sss:q"), we expect the game to run the first
+     * 7 commands (n123sss) and then quit and save. If we then do
+     * interactWithInputString("l"), we should be back in the exact same state.
+     *
+     * In other words, both of these calls:
+     *   - interactWithInputString("n123sss:q")
+     *   - interactWithInputString("lww")
+     *
+     * should yield the exact same world state as:
+     *   - interactWithInputString("n123sssww")
+     *
+     * @param input the input string to feed to your program
+     * @return the 2D TETile[][] representing the state of the world
+     */
+    public void interactWithInputString(String input) {
+        StrInput strInput = new StrInput(input);
+        parseInput(strInput);
     }
 
     /**
@@ -175,7 +193,7 @@ public class Engine implements Serializable {
     /**
      * Show the prompt when player choose new game.
      */
-    private void promptShow() {
+    private void showPrompt() {
         StdDraw.clear(Color.BLACK);
         StdDraw.setPenColor(StdDraw.WHITE);
         StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2,
@@ -187,7 +205,7 @@ public class Engine implements Serializable {
     /**
      * Show the inout seed when player input.
      */
-    private void seedShow(String seed) {
+    private void showSeed(String seed) {
         StdDraw.clear(Color.BLACK);
         StdDraw.setPenColor(StdDraw.WHITE);
         StdDraw.text((double) Engine.WIDTH / 2, (double) Engine.HEIGHT / 2, "Seed: " + seed);
