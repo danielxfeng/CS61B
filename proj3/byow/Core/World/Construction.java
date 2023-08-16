@@ -1,11 +1,13 @@
-package byow.Core;
+package byow.Core.World;
 
+import byow.Core.Point;
+import byow.Core.TileBrick;
+import byow.Core.Utils;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 
 /**
  * This class represents a construction in a frame such as a room or a hallway.

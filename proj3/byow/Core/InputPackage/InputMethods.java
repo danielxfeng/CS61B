@@ -1,4 +1,4 @@
-package byow.Core;
+package byow.Core.InputPackage;
 
 /**
  * This interface is used to represent the input commands.

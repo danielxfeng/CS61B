@@ -1,4 +1,4 @@
-package byow.Core;
+package byow.Core.World;
 
 /**
  * This class is a simple DisjointSet data structure implementation.

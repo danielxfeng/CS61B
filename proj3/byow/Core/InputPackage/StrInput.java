@@ -1,4 +1,4 @@
-package byow.Core;
+package byow.Core.InputPackage;
 
 /**
  * This class is used to represent the input by a string.

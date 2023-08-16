@@ -1,6 +1,8 @@
 package byow.Core;
 
-import byow.TileEngine.TETile;
+import byow.Core.InputPackage.InputMethods;
+import byow.Core.InputPackage.KeyInput;
+import byow.Core.InputPackage.StrInput;
 import edu.princeton.cs.introcs.StdDraw;
 
 import java.awt.*;

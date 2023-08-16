@@ -1,5 +1,7 @@
 package byow.Core;
 
+import byow.Core.World.Construction;
+import byow.Core.World.Frame;
 import byow.TileEngine.TERenderer;
 import byow.TileEngine.TETile;
 import byow.TileEngine.Tileset;

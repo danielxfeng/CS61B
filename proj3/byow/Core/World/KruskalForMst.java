@@ -1,4 +1,7 @@
-package byow.Core;
+package byow.Core.World;
+
+import byow.Core.Point;
+import byow.Core.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
