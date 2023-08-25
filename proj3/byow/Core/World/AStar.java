@@ -117,13 +117,14 @@ public class AStar {
         this.startRoom = room1;
         this.targetRoom = room2;
         this.hallwayMap = hallwayMap;
-        this.startPoint = this.startRoom.getCentralPoint().parseIndex();
+        this.startPoint = this.startRoom.getCentralPoint().getIPoint();
         this.tileBricks = tileBricks;
         int volume = Frame.VOLUME;
         this.edges = new Edge[volume];
         this.deque = new PriorityQueue<>();
         for (int i = 0; i < volume; i++) {
-            this.edges[i] = new Edge(i, Utils.getDistance(i, targetRoom));
+            Point p = new Point(i);
+            this.edges[i] = new Edge(i, Utils.getDistance(p, targetRoom));
         }
     }
 
@@ -173,10 +174,10 @@ public class AStar {
      * Return the possible vertices of this edge.
      */
     private List<Integer> getVertices(Edge edge) {
-        Point[] neighbours = Point.getNeighbours(getEdgeIndex(edge));
+        Point[] neighbours = Point.getNeighbours(new Point(getEdgeIndex(edge)));
         ArrayList<Integer> vertices = new ArrayList<>();
         for (Point neighbour : neighbours) {
-            int intNeighbour = neighbour.parseIndex();
+            int intNeighbour = neighbour.getIPoint();
             if (tileBricks[intNeighbour].getConstructionType() == TileBrick.CONSTRUCTION_TYPE_NOTHING) {
                 vertices.add(intNeighbour);
             }
@@ -188,15 +189,15 @@ public class AStar {
      * Return connected point when 2 room can be connected. Otherwise, return null.
      */
     private Edge getTargetGate(Edge edge) {
-        Point[] neighbours = Point.getNeighbours(getEdgeIndex(edge));
+        Point[] neighbours = Point.getNeighbours(new Point(getEdgeIndex(edge)));
         for (Point neighbour : neighbours) {
             if (isWallOrGate(neighbour)) {
                 boolean isHallwayToTargetRoom = isHallwayToTargetRoom(neighbour);
                 if (isHallwayToTargetRoom) {
-                    hallwayMap.get(tileBricks[neighbour.parseIndex()].getKey()).addConnectedRoom(startRoom);
+                    hallwayMap.get(tileBricks[neighbour.getIPoint()].getKey()).addConnectedRoom(startRoom);
                 }
                 if (isTargetRoomButNotCorner(neighbour) || isHallwayToTargetRoom) {
-                    Edge target = this.edges[neighbour.parseIndex()];
+                    Edge target = this.edges[neighbour.getIPoint()];
                     setEdgePrev(target, edge);
                     return target;
                 }
@@ -209,7 +210,7 @@ public class AStar {
      * Return true if the point is a wall of a gate.
      */
     private boolean isWallOrGate(Point point) {
-        TileBrick tileBrick = tileBricks[point.parseIndex()];
+        TileBrick tileBrick = tileBricks[point.getIPoint()];
         return tileBrick.getType() == Construction.WALLS || tileBrick.getType() == Construction.GATES;
     }
 
@@ -217,7 +218,7 @@ public class AStar {
      * Return true if the brick and the point is belonged to the target room.
      */
     private boolean isTargetRoomButNotCorner(Point point) {
-        TileBrick tileBrick = tileBricks[point.parseIndex()];
+        TileBrick tileBrick = tileBricks[point.getIPoint()];
         return tileBrick.getKey().equals(targetRoom.getKey()) && !targetRoom.isCorner(point);
     }
 
@@ -225,7 +226,7 @@ public class AStar {
      * Return true if the brick is a hallway to the target room.
      */
     private boolean isHallwayToTargetRoom(Point point) {
-        TileBrick tileBrick = tileBricks[point.parseIndex()];
+        TileBrick tileBrick = tileBricks[point.getIPoint()];
         return tileBrick.getConstructionType() == TileBrick.CONSTRUCTION_TYPE_HALLWAY
                 && hallwayMap.get(tileBrick.getKey()).containsRoom(targetRoom);
     }
@@ -258,7 +259,7 @@ public class AStar {
         int size = edgeList.size();
         ArrayList<Point> points = new ArrayList<>();
         for (int i = size - 2; i >= 0; i--) { // Use - 2 for avoiding the central point of startRoom.
-            points.add(Point.parseFromIndex(edgeList.get(i)));
+            points.add(new Point(edgeList.get(i)));
         }
         return points;
     }

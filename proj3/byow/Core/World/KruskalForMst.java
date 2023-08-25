@@ -170,7 +170,7 @@ public class KruskalForMst {
     private DisjointSet buildDjs() {
         DisjointSet djs = new DisjointSet();
         for (Room room : rooms) {
-            int sw = room.getSw().parseIndex();
+            int sw = room.getSw().getIPoint();
             List<Point> walls = room.getWalls();
             connectDjs(walls, sw, djs);
             List<Point> bricks = room.getBricks();
@@ -184,7 +184,7 @@ public class KruskalForMst {
      */
     private void connectDjs(List<Point> points, int sw, DisjointSet djs) {
         for (Point point : points) {
-            djs.connect(sw, point.parseIndex());
+            djs.connect(sw, point.getIPoint());
         }
     }
 }

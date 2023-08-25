@@ -37,7 +37,7 @@ public class Hallway extends Construction {
         this.hallwayMap = hallwayMap;
         Room room1 = vertex[0];
         Room room2 = vertex[1];
-        if (room1.getSwIndex() + room1.getNe().parseIndex() < room2.getSwIndex() + room2.getNe().parseIndex()) {
+        if (room1.getSwIndex() + room1.getNe().getIPoint() < room2.getSwIndex() + room2.getNe().getIPoint()) {
             this.startRoom = room1;
             this.targetRoom = room2;
         } else {
@@ -83,7 +83,7 @@ public class Hallway extends Construction {
             } else {
                 bricks.add(point);
                 Point prev = path.get(i - 1);
-                int direction = Point.getDirection(point.parseIndex(), prev.parseIndex());
+                int direction = Point.getDirection(point, prev);
                 addHallwayWalls(path, point, prev, direction, lastDirection);
                 if (direction != lastDirection) {
                     lastDirection = direction;
@@ -123,7 +123,7 @@ public class Hallway extends Construction {
      */
     private void addHallwayWalls(List<Point> path, Point point) {
         if (!path.contains(point)
-                && tileBricks[point.parseIndex()].getConstructionType() == TileBrick.CONSTRUCTION_TYPE_NOTHING) {
+                && tileBricks[point.getIPoint()].getConstructionType() == TileBrick.CONSTRUCTION_TYPE_NOTHING) {
             walls.add(point);
         }
     }

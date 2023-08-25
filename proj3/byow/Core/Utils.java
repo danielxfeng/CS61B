@@ -150,16 +150,9 @@ public class Utils {
     }
 
     /**
-     * Return the distance by 2 given points. Use Manhattan distance here.
-     */
-    public static int getDistance(int iPoint1, int iPoint2) {
-        return getDistance(Point.parseFromIndex(iPoint1), Point.parseFromIndex(iPoint2));
-    }
-
-    /**
      * Return the distance by 1 given point and 1 room. Use Manhattan distance here.
      */
-    public static int getDistance(int iPoint, Room room) {
-        return getDistance(Point.parseFromIndex(iPoint), room.getCentralPoint());
+    public static int getDistance(Point point, Room room) {
+        return getDistance(point, room.getCentralPoint());
     }
 }

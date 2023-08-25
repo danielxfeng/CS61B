@@ -80,10 +80,10 @@ public abstract class Construction {
         int constructionType = this.getClass() == Room.class ?
                 TileBrick.CONSTRUCTION_TYPE_ROOM : TileBrick.CONSTRUCTION_TYPE_HALLWAY;
         for (Point brick : bricks) {
-            tileBricks[brick.parseIndex()].setValue(Construction.BRICKS, constructionType, getKey());
+            tileBricks[brick.getIPoint()].setValue(Construction.BRICKS, constructionType, getKey());
         }
         for (Point wall : walls) {
-            tileBricks[wall.parseIndex()].setValue(Construction.WALLS, constructionType, getKey());
+            tileBricks[wall.getIPoint()].setValue(Construction.WALLS, constructionType, getKey());
         }
     }
 }

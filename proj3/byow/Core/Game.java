@@ -32,7 +32,7 @@ public class Game implements Serializable {
     /**
      * The position of the player.
      */
-    private int iPointOfPlayer;
+    private Point iPointOfPlayer;
     /**
      * The scope of player version, set to 0 for infinity.
      */
@@ -57,7 +57,7 @@ public class Game implements Serializable {
     public Game(long seed) {
         this.rand = new Random(seed);
         this.tileBricks = new TileBrick[Frame.VOLUME];
-        iPointOfPlayer = -1;
+        iPointOfPlayer = null;
         this.visionScope = Engine.VISION_SCOPE;
         for (int i = 0; i < Frame.VOLUME; i++) {
             this.tileBricks[i] = new TileBrick();
@@ -116,23 +116,25 @@ public class Game implements Serializable {
         if (isHide) {
             tiles[x][y] = Tileset.NOTHING;
         } else {
-            tiles[x][y] = tileBricks[Point.getIPointFromXY(x, y)].getStyle();
+            Point point = new Point(x, y);
+            tiles[x][y] = tileBricks[point.getIPoint()].getStyle();
         }
     }
 
     /**
      * Fill all the tiles with the limit of the vision scope.
      */
-    public void fillAllTiles(int iPoint, boolean isHide) {
-        System.out.println("iPoint: " + iPoint);
+    public void fillAllTiles(Point point, boolean isHide) {
+        System.out.println("iPoint: " + point);
         List<Integer> pointList = new ArrayList<>();
-        if (iPoint > 0) {
-            pointList = Point.getVision(iPoint, this.visionScope);
+        if (point != null) {
+            pointList = Point.getVision(point, this.visionScope);
         }
         boolean tileIsHide;
         for (int x = 0; x < Engine.WIDTH; x++) {
             for (int y = 0; y < Engine.HEIGHT; y++) {
-                tileIsHide = isHide && (visionScope > 0) && (!pointList.contains(Point.getIPointFromXY(x, y))) ?
+                Point neighbour = new Point(x, y);
+                tileIsHide = isHide && (visionScope > 0) && (!pointList.contains(neighbour.getIPoint())) ?
                         true : false;
                 fillATile(x, y, tileIsHide);
             }
@@ -143,7 +145,7 @@ public class Game implements Serializable {
      * Fill all the tiles without limit the vision scope.
      */
     public void fillAllTiles() {
-        fillAllTiles(-1, false);
+        fillAllTiles(null, false);
     }
 
     /**
@@ -165,8 +167,8 @@ public class Game implements Serializable {
      */
     public void render() {
         String info = "";
-        if (iPointOfPlayer > 0) {
-            TileBrick player = tileBricks[iPointOfPlayer];
+        if (iPointOfPlayer != null) {
+            TileBrick player = tileBricks[iPointOfPlayer.getIPoint()];
             info = "   I am at " + iPointOfPlayer + ", "
                     + "a " + player.getTypeString()
                     + " of a " + player.getConstructionTypeString() + ". "
@@ -202,19 +204,19 @@ public class Game implements Serializable {
             }
             randomPosition++;
         }
-        setPlayer(iPoint);
+        setPlayer(new Point(iPoint));
     }
 
     /**
      * Set the player to a position.
      */
-    private void setPlayer(int iPoint) {
-        if (iPoint < 0 || iPoint >= Frame.VOLUME || !Point.checkBound(iPoint)) {
+    private void setPlayer(Point point) {
+        if (point.getIPoint() < 0 || point.getIPoint() >= Frame.VOLUME || !Point.checkBound(point)) {
             return;
         }
-        iPointOfPlayer = iPoint;
-        tileBricks[iPoint] = TileBrick.setPlayer(tileBricks[iPoint]);
-        fillAllTiles(iPoint, true);
+        iPointOfPlayer = point;
+        tileBricks[point.getIPoint()] = TileBrick.setPlayer(tileBricks[point.getIPoint()]);
+        fillAllTiles(point, true);
         render();
     }
 
@@ -235,14 +237,14 @@ public class Game implements Serializable {
      * Move the player and render the frame.
      */
     private void move(int direction) {
-        int nextPoint = Point.getNextPoint(Point.parseFromIndex(iPointOfPlayer), direction).parseIndex();
-        int type = tileBricks[nextPoint].getType();
+        Point nextPoint = iPointOfPlayer.getNextPoint(direction);
+        int type = tileBricks[nextPoint.getIPoint()].getType();
         if (type == Construction.GATES) { // unlock the gate
-            tileBricks[nextPoint].setType(Construction.UNLOCKED_GATES);
+            tileBricks[nextPoint.getIPoint()].setType(Construction.UNLOCKED_GATES);
             fillAllTiles(nextPoint, true);
             render();
         } else if (type == Construction.BRICKS || type == Construction.UNLOCKED_GATES) { // move to the next point
-            tileBricks[iPointOfPlayer] = tileBricks[iPointOfPlayer].getHideOne();
+            tileBricks[iPointOfPlayer.getIPoint()] = tileBricks[iPointOfPlayer.getIPoint()].getHideOne();
             setPlayer(nextPoint);
         }
     }

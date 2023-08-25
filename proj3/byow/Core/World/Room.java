@@ -108,7 +108,7 @@ public class Room extends Construction {
      * Return the int index of the Southwest corner of the room.
      */
     public int getSwIndex() {
-        return getSw().parseIndex();
+        return getSw().getIPoint();
     }
 
     /**
@@ -118,7 +118,7 @@ public class Room extends Construction {
         List<Integer> possibleGates = new ArrayList<>();
         for (Point wallBrick : this.getWalls()) {
             if (!isCorner(wallBrick)) {
-                possibleGates.add(wallBrick.parseIndex());
+                possibleGates.add(wallBrick.getIPoint());
             }
         }
         return possibleGates;
@@ -175,7 +175,7 @@ public class Room extends Construction {
      * Check if the point is a part of other rooms.
      */
     private boolean checkConflict(Point p) {
-        return tileBricks[p.parseIndex()].getConstructionType() == TileBrick.CONSTRUCTION_TYPE_NOTHING;
+        return tileBricks[p.getIPoint()].getConstructionType() == TileBrick.CONSTRUCTION_TYPE_NOTHING;
     }
 
     /**
@@ -191,7 +191,7 @@ public class Room extends Construction {
         }
         this.gates.add(p);
         this.walls.remove(p);
-        tileBricks[p.parseIndex()].setValue(Construction.GATES, TileBrick.CONSTRUCTION_TYPE_ROOM, getKey());
+        tileBricks[p.getIPoint()].setValue(Construction.GATES, TileBrick.CONSTRUCTION_TYPE_ROOM, getKey());
         return true;
     }
 

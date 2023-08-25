@@ -11,6 +11,10 @@ public class Point implements Serializable {
     private final int x;
     private final int y;
     /**
+     * The integer index of the point.
+     */
+    private final int iPoint;
+    /**
      * Follows are the 4 directions.
      */
     public static final int NORTH = 0;
@@ -26,6 +30,14 @@ public class Point implements Serializable {
     public Point(int x, int y) {
         this.x = x;
         this.y = y;
+        this.iPoint = xyToIPoint(x, y);
+    }
+
+    /**
+     * Create an instance by given iPoint.
+     */
+    public Point(int iPoint) {
+        this(iPoint / WIDTH_FACTOR, iPoint % WIDTH_FACTOR);
     }
 
     /**
@@ -43,35 +55,35 @@ public class Point implements Serializable {
     }
 
     /**
-     * Return the Vision points of the given int point and the vision scope that defined in Game.class.
+     * return the iPoint
      */
-    private static List<Integer> getVision(int x, int y, int visionScope) {
+    public int getIPoint() {
+        return this.iPoint;
+    }
+
+    /**
+     * Return the Vision points of the given point and the vision scope that defined in Game.class.
+     */
+    public static List<Integer> getVision(Point point, int visionScope) {
         List<Integer> pointList = new ArrayList<>();
-        Point point = new Point(x, y);
         Point sw = point.getShiftPoint(-visionScope, -visionScope);
         int startX = sw.getX();
         int startY = sw.getY();
         for (int i = startX; i < startX + visionScope * 2 + 1; i++) {
             for (int j = startY; j < startY + visionScope * 2 + 1; j++) {
                 if (Point.checkBound(i, j)) {
-                    pointList.add(Point.getIPointFromXY(i, j));
+                    Point p = new Point(i, j);
+                    pointList.add(p.getIPoint());
                 }
             }
         }
         return pointList;
     }
 
-    public static List<Integer> getVision(int iPoint, int visionScope) {
-        Point point = parseFromIndex(iPoint);
-        return getVision(point.getX(), point.getY(), visionScope);
-    }
-
     /**
      * return the direction of the given point.
      */
-    public static int getDirection(int iPoint, int prevIPoint) {
-        Point point = parseFromIndex(iPoint);
-        Point prevPoint = parseFromIndex(prevIPoint);
+    public static int getDirection(Point point, Point prevPoint) {;
         if (point.getX() == prevPoint.getX()) {
             if (point.getY() > prevPoint.getY()) {
                 return NORTH;
@@ -90,12 +102,12 @@ public class Point implements Serializable {
     /**
      * Return the next point of the given point and the given direction.
      */
-    public static Point getNextPoint(Point point, int direction) {
+    public Point getNextPoint(int direction) {
         return switch (direction) {
-            case NORTH -> point.getShiftPoint(0, 1);
-            case SOUTH -> point.getShiftPoint(0, -1);
-            case WEST -> point.getShiftPoint(-1, 0);
-            case EAST -> point.getShiftPoint(1, 0);
+            case NORTH -> getShiftPoint(0, 1);
+            case SOUTH -> getShiftPoint(0, -1);
+            case WEST -> getShiftPoint(-1, 0);
+            case EAST -> getShiftPoint(1, 0);
             default -> throw new IndexOutOfBoundsException("No such direction.");
         };
     }
@@ -104,15 +116,8 @@ public class Point implements Serializable {
      * Return the neighbours of the given point by the sequence NSWE.
      */
     public static Point[] getNeighbours(Point point) {
-        return new Point[]{getNextPoint(point, NORTH), getNextPoint(point, SOUTH),
-                getNextPoint(point, WEST), getNextPoint(point, EAST)};
-    }
-
-    /**
-     * Return the neighbours of the given int point.
-     */
-    public static Point[] getNeighbours(int iPoint) {
-        return getNeighbours(Point.parseFromIndex(iPoint));
+        return new Point[]{point.getNextPoint(NORTH), point.getNextPoint(SOUTH),
+                point.getNextPoint(WEST), point.getNextPoint(EAST)};
     }
 
     /**
@@ -123,24 +128,10 @@ public class Point implements Serializable {
     }
 
     /**
-     * Return the iPoint from given x and y.
-     */
-    public static int getIPointFromXY(int x, int y) {
-        return x * WIDTH_FACTOR + y;
-    }
-
-    /**
-     * return the point by the index value.
-     */
-    public static Point parseFromIndex(int index) {
-        return new Point(index / WIDTH_FACTOR, index % WIDTH_FACTOR);
-    }
-
-    /**
      * return the index value (xy) of the point.
      */
-    public int parseIndex() {
-        return this.getX() * WIDTH_FACTOR + this.getY();
+    private int xyToIPoint(int x, int y) {
+        return x * WIDTH_FACTOR + y;
     }
 
     /**
@@ -153,14 +144,13 @@ public class Point implements Serializable {
     /**
      * Check if the point is in the frame.
      */
-    public static boolean checkBound(int iPoint) {
-        Point p = Point.parseFromIndex(iPoint);
-        return checkBound(p.getX(), p.getY());
+    public static boolean checkBound(Point point) {
+        return checkBound(point.getX(), point.getY());
     }
 
     @Override
     public String toString() {
-        return String.valueOf(parseIndex());
+        return String.valueOf(this.iPoint);
     }
 
     @Override
@@ -168,12 +158,11 @@ public class Point implements Serializable {
         if (o == null || o.getClass() != Point.class) {
             return false;
         }
-        Point p = (Point) o;
-        return this.getX() == p.getX() && this.getY() == p.getY();
+        return this.iPoint == ((Point) o).iPoint;
     }
 
     @Override
     public int hashCode() {
-        return parseIndex();
+        return this.iPoint;
     }
 }
