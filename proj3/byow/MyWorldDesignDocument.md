@@ -54,18 +54,6 @@ This class is the main logical code of the game. This class will keep the game s
 - `ter`: the render of the game.
 - `rand`: a random number generator.
 
-## Nested Class
-
-- `Cmt` : a data structure of a commit.
-
-### Fields:
-
-- `message` : the message of the commit.
-- `timeStamp` : the time stamp of the commit time.
-- `hash` : the hash value of the commit.
-- `tree` : a  `TreeMap` saves the name and hash value of tracked files.
-- `parent` : a  `String[]`saves the at most 2 parents of the commit.
-
 ---
 
 ## TileBrick
